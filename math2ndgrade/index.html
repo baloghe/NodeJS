@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	   <meta charset="UTF-8"/>
+	   <title>Math excercises generator for 2nd graders</title>
+	   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Orbitron" />
+	   <link rel="stylesheet" href="styles/math2ndgrade.css" />
+	</head>
+	<body> 
+
+	<button id="btnStart" type="button" value="Start">Start</button>
+ 
+	<section id="scTasks" class="hide">
+	   <div id="dvClock"><p id="pClock">10</p></div>
+	   <div id="dvTasks">
+			  <table>
+					<colgroup>
+						   <col width="80%"/>
+						   <col width="20%"/>
+					</colgroup>
+					<thead>
+						   <tr><th span="3">Excercises</th></tr>
+					</thead>
+					<tbody id="tbTasks">
+						   <tr><td><p id="t1" class="task">10 + <input id="i1" type="number" min="0" max="30"> = 20</p></td><td id="m1"></td></tr>
+						   <tr><td><p id="t2" class="task">3 * <input id="i2" type="number" min="0" max="30"> = 18</p></td><td id="m2"></td></tr>
+					</tbody>
+			  </table>
+	   </div>
+	   <button id="btnSubmit" type="button" value="Kész">Submit</button>
+	</section>
+ 
+	<section id="scResults" class="hide">
+		<table>
+			   <colgroup>
+					  <col width="10%"/>
+					  <col width="30%"/>
+					  <col width="30%"/>
+					  <col width="10%"/>
+					  <col width="20%"/>
+			   </colgroup>
+			   <thead>
+					  <tr>
+							<th>#</th>
+							<th>Good answer</th>
+							<th>Bad answer</th>
+							<th>Ratio</th>
+							<th>Time</th>
+					  </tr>
+			   </thead>
+			   <tbody id="tbResults">
+					  <tr>
+							<td>1.</td>
+							<td>9</td>
+							<td>1</td>
+							<td>90%</td>
+							<td>10 mp</td>
+					  </tr>
+			   </tbody>
+		</table>
+	</section>
+ 
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="scripts/math2ndgrade.js"></script>
+</body>
+</html>
