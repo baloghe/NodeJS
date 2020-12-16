@@ -1,2 +1,3 @@
 # NodeJS
 NodeJS learn-on-the-job selftraining
+Adventures in Html5, Javascript, CSS and NodeJS in the hope of having some fun with web applications in the end...
