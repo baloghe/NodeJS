@@ -59,8 +59,25 @@
 			   </tbody>
 		</table>
 	</section>
- 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	<script src="scripts/math2ndgrade.js"></script>
 </body>
+<!-- include third party scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.9/jsrender.min.js" 
+        integrity="sha512-/jrvVHS7QH4kmMcYa/tfwrRDknb4pbpWc+kxUTEwbxO3yeOEW+Hn/Y4mwWrBcKq4WYqd4JO0tMH2NF7MsCgDeQ==" 
+		crossorigin="anonymous">
+</script>
+
+<!-- include own stuff -->
+<script src="scripts/math2ndgrade.js"></script>
+
+<!-- Results table row template -->
+<script id="resultsRow" type="text/x-jsrender">
+	  <tr>
+			<td>{{:rowNum}}</td>
+			<td>{{:cntGood}}</td>
+			<td>{{:cntBad}}</td>
+			<td>{{:ratSuccess}} %</td>
+			<td>{{:elapsedTime}} sec</td>
+	  </tr>
+</script>
 </html>

@@ -109,9 +109,9 @@ var resEval = Array.from({length: Constants.NUM_EXCERCISES}, (_,i) => Quiz.TASKS
 							   //console.log(`  task ${i} :: taskOK=${taskOK}`);
 							   //mark excercise
 							   if(taskOK){
-											  $('#m'+(i)).append('<img src="http://clipart-library.com/images/6cp6Rbyri.jpg" alt="OK">OK</img>');
+											  $('#m'+(i)).append('<img src="http://clipart-library.com/images/6cp6Rbyri.jpg" alt="OK"></img>');
 							   } else {
-											  $('#m'+(i)).append('<img src="http://clipart-library.com/images/8ixngbRxT.jpg" alt="HIBA" >HIBA</img>');
+											  $('#m'+(i)).append('<img src="http://clipart-library.com/images/8ixngbRxT.jpg" alt="HIBA" ></img>');
 							   }
 							   return acc;
 				}
@@ -120,13 +120,16 @@ var resEval = Array.from({length: Constants.NUM_EXCERCISES}, (_,i) => Quiz.TASKS
 		 
 //append to Results
 var res = {
-	   cntGood    : resEval.good
+	   rowNum     : Results.length+1
+	  ,cntGood    : resEval.good
 	  ,cntBad     : resEval.bad
 	  ,ratSuccess : Math.round(100 * resEval.good / (resEval.good + resEval.bad))
 	  ,elapsedTime: elapsedTime
 };
 Results.push(res);
-$('#tbResults').append('<tr><td>'+Results.length+'.</td><td>'+res.cntGood+'</td><td>'+res.cntBad+'</td><td>'+res.ratSuccess+' %</td><td>'+res.elapsedTime+' sec</td></tr>');
+//$('#tbResults').append('<tr><td>'+Results.length+'.</td><td>'+res.cntGood+'</td><td>'+res.cntBad+'</td><td>'+res.ratSuccess+' %</td><td>'+res.elapsedTime+' sec</td></tr>');
+//$('#tbResults').append( $('#resultsRow').tmpl(res) );
+$('#tbResults').append( $.templates('#resultsRow').render(res) );
 
 //show results
 $('#btnStart').prop('disabled', false);
