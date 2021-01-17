@@ -175,8 +175,23 @@ function renderTaskSimple(inType, inOperand, inElems, inIdStart, inTaskId){
 	return ret;
 }
 
-
 function renderTaskHtmlSimple(inElems, inIdStart, inTaskId){
+	var task, html;
+	task = {
+			 taskId: 't'+inTaskId
+			,inputId: 'i'+inIdStart
+			,solutionId: 'm'+inTaskId
+			,rangeMin: Constants.RANGE_MIN
+			,rangeMax: Constants.RANGE_MAX
+			,relations: Constants.RELATIONS
+			,elems: inElems
+		};
+	html=$.templates('#simpleTask').render(task);
+	return html;
+}
+
+
+function renderTaskHtmlSimple__Old(inElems, inIdStart, inTaskId){
 	var uCnt = 0; //count of unknown elements
 	var html = '<tr><td><p id="t'+inIdStart+'" class="task">';
 	for(var e of inElems){
@@ -274,53 +289,23 @@ function generateSimpleChain(inIdStart, inTaskId){
 	return ret;
 }
 
-
 function renderAdvancedChainHtml(inElems, inIdStart, inTaskId){
-	var uCnt = 0; //count of unknown elements
-	var edgeCnt = 0; //edge count
-	var html = '<tr><td><div id="t'+inIdStart+'" class="task"><table class="advancedChain"><tr>';
-	for(var i=0; i<inElems.length; i++){
-	  var e = inElems[i];
-	  if( i%3==0 ){
-			//node => rowspan
-			html += ('<td rowspan="2" class="vertex">');
-			if( e=='X' ){
-						   html += (' <input id="i'+(inIdStart+uCnt)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>');
-						   uCnt++;
-			} else {
-						   html += e;
-			}
-			html += ('</td>');
-	  } else if( i%3==1 ){
-			//operator on edge => edge
-			html += ('<td class="edge"><div>');
-			if( e=='O' ){
-						   html += ('<select id="i'+(inIdStart+uCnt)+'">'+Constants.OPERATORS.map((e)=>'<option value="'+e+'">'+e+'</option>').join('')+'</select>');
-						   uCnt++;
-			} else {
-						   html += e;
-			}
-			edgeCnt++;
-	  } else {
-			//operand on edge
-			if( e=='X' ){
-						   html += (' <input id="i'+(inIdStart+uCnt)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>');
-						   uCnt++;
-			} else {
-						   html += e;
-			}
-			html += ('</div></td>');
-	  }
-	}//next i
-	//close table row
-	html += '</tr>';
-	//add cells under each edge
-	html += '<tr>';
-	for(var i=0; i<edgeCnt; i++){
-		html += '<td><p class="task">&nbsp;</p></td>';
-	}
-	html += '</tr></table></div></td><td id="m'+inTaskId+'"></td></tr>';
-
+	var task, html, uCnt;
+	uCnt = 0;
+	task = {
+			 taskId: 't'+inTaskId
+			,solutionId: 'm'+inTaskId
+			,rangeMin: Constants.RANGE_MIN
+			,rangeMax: Constants.RANGE_MAX
+			,elems: inElems.map(function(e) {
+							if(e==='X' || e==='O'){
+								var ret = {value: e, inputId: 'i'+(inIdStart+uCnt)};
+								uCnt++;
+								return ret;
+							} else return {value: e};
+						})
+		};
+	html=$.templates('#advancedChain').render(task);
 	return html;
 }
 
@@ -398,27 +383,20 @@ function generateAdvancedChain(inIdStart, inTaskId){
 	return ret;
 }
 
-
 function renderRemainderDivisionHtml(inElems, inIdStart, inTaskId){
-	var html = '<tr><td><div id="t'+inIdStart+'" class="task"><table><tr>';
-
-	html += ('<td>' + (inElems[0]=='X' ? '<input id="i'+(inIdStart)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>'
-								  : inElems[0])
-							+'</td><td>:</td>');
-
-	html += ('<td>' + (inElems[1]=='X' ? '<input id="i'+(inIdStart)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>'
-								  : inElems[1])
-							+'</td><td>=</td>');
-
-	html += ('<td>' + (inElems[2]=='X' ? '<input id="i'+(inIdStart)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>'
-								  : inElems[2])
-							+'</td></tr>');
-	html += ('<tr><td class="remainder">' + (inElems[3]=='X' ? '<input id="i'+(inIdStart)+'" type="number" min="'+Constants.RANGE_MIN+'" max="'+Constants.RANGE_MAX+'"/>'
-								  : inElems[3])
-							+'</td><td></td><td></td><td></td><td></td></tr>');
-						   
-	html += '</table></div></td><td id="m'+inTaskId+'"></td></tr>';
-
+	var task, html;
+	task = {
+			 taskId: 't'+inTaskId
+			,inputId: 'i'+inIdStart
+			,solutionId: 'm'+inTaskId
+			,rangeMin: Constants.RANGE_MIN
+			,rangeMax: Constants.RANGE_MAX
+			,dividend: inElems[0]
+			,divisor: inElems[1]
+			,quotient: inElems[2]
+			,remainder: inElems[3]
+		};
+	html=$.templates('#remainderDivision').render(task);
 	return html;
 }
 

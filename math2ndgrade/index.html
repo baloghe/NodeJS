@@ -80,4 +80,139 @@
 			<td>{{:elapsedTime}} sec</td>
 	  </tr>
 </script>
+
+<!-- Elementary operation template -->
+<script id="simpleTask" type="text/x-jsrender">
+	<tr>
+		<td>
+			<p id="{{:taskId}}" class="task">
+				{{if elems.length
+					~inputId=inputId
+					~rangeMin=rangeMin
+					~rangeMax=rangeMax
+					~relations=relations
+				}}
+			
+					{{for elems itemVar="~elem"}}
+						{{if ~elem=='X'}}
+							<input id="{{:~inputId}}" type="number" min="{{:~rangeMin}}" max="{{:~rangeMax}}"></input>
+						{{else ~elem=='R'}}
+							<select id="{{:~inputId}}">
+							{{for ~relations itemVar="~rel"}}
+								<option value="{{:~rel}}">{{:~rel}}</option>
+							{{/for}}
+							</select>
+						{{else}}
+							{{:~elem}}
+						{{/if}}
+					{{/for}}
+				{{/if}}
+			</p>
+		</td>
+		<td id="{{:solutionId}}">
+		</td>
+	</tr>
+</script>
+
+<!-- Integer division with remainder template -->
+<script id="remainderDivision" type="text/x-jsrender">
+	<tr>
+		<td>
+			<div id="{{:taskId}}" class="task">
+				<table>
+					<tr>
+						<td>
+							{{if dividend=='X'}}
+								<input id="{{:inputId}}" type="number" min="{{:rangeMin}}" max="{{:rangeMax}}"></input>
+							{{else}}
+								{{:dividend}}
+							{{/if}}
+						</td><td>:</td>
+						<td>
+							{{if divisor=='X'}}
+								<input id="{{:inputId}}" type="number" min="{{:rangeMin}}" max="{{:rangeMax}}"></input>
+							{{else}}
+								{{:divisor}}
+							{{/if}}
+						</td><td>=</td>
+						<td>
+							{{if quotient=='X'}}
+								<input id="{{:inputId}}" type="number" min="{{:rangeMin}}" max="{{:rangeMax}}"></input>
+							{{else}}
+								{{:quotient}}
+							{{/if}}
+						</td>
+					</tr>
+					<tr>
+						<td class="remainder">
+							{{if remainder=='X'}}
+								<input id="{{:inputId}}" type="number" min="{{:rangeMin}}" max="{{:rangeMax}}"></input>
+							{{else}}
+								{{:remainder}}
+							{{/if}}
+						</td><td></td><td></td><td></td><td></td>
+					</tr>
+				</table>
+			</div>
+		</td>
+		<td id="{{:solutionId}}">
+		</td>
+	</tr>
+</script>
+
+<!-- Advanced chain computing template -->
+<script id="advancedChain" type="text/x-jsrender">
+	<tr>
+		<td>
+			<div id="{{:taskId}}" class="task">
+				<table  class="advancedChain">
+					{{if elems.length
+						~rangeMin=rangeMin
+						~rangeMax=rangeMax
+						~operators=operators
+					}}
+						<tr>
+							{{for elems itemVar="~elem"}}
+								{{if #getIndex()%3==0}}
+									<td rowspan="2" class="vertex">
+										{{if ~elem.value=='X'}}
+											<input id="{{:inputId}}" type="number" min="{{:~rangeMin}}" max="{{:~rangeMax}}"></input>
+										{{else}}
+											{{:value}}
+										{{/if}}
+									</td>
+								{{else #getIndex()%3==1}}
+									<td class="edge"><div>
+										{{if ~elem.value=='O'}}
+											<select id="{{:inputId}}">
+											{{for ~operators itemVar="~op"}}
+												<option value="{{:~op}}">{{:~op}}</option>
+											{{/for}}
+											</select>
+										{{else}}
+											{{:value}}
+										{{/if}}
+								{{else}}
+										{{if ~elem.value=='X'}}
+											<input id="{{:inputId}}" type="number" min="{{:~rangeMin}}" max="{{:~rangeMax}}"></input>
+										{{else}}
+											{{:value}}
+										{{/if}}
+									</div></td>
+								{{/if}}
+							{{/for}}
+						</tr>
+						<tr>
+							{{for start=1 end=(elems.length-1)/3}}
+								<td><p class="task">&nbsp;</p></td>
+							{{/for}}
+						</tr>
+					{{/if}}
+				</table>
+			</div>
+		</td>
+		<td id="{{:solutionId}}">
+		</td>
+	<tr>
+</script>
 </html>
