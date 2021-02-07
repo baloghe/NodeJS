@@ -139,8 +139,9 @@ socket.on('disconnect', function() {
 	//remove user from rooms (Games)
 	var usr = socket.user;
 	for (var gid in gameRegistry) {
-		if(gameRegistry[gid].users.hasKey(usr)){
+		if(gameRegistry[gid].users.has(usr)){
 			socket.broadcast.to(gid).emit('userDisconnected', JSON.stringify(socket.user));
+			gameRegistry[gid].users.delete(usr);
 		}
 	}
 	//disable socket

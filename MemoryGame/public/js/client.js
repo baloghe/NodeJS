@@ -65,7 +65,7 @@ function uiRefreshUsersList(){
 		task = {tableHeaderClass: "tableHeader",
 				listCaption: "Users",
 				nameClass: "userName",
-				elems: Array.from(Game.otherUsers).map((e)=>{return {avatarSrc: e.avatar, name: e.name};})
+				elems: Array.from(Game.otherUsers).map((x)=>{var e = JSON.parse(x); return {avatarSrc: e.avatar, name: e.name};})
 				};
 		html=$.templates('#tmplUserList').render(task);
 		$('#dvJoinedAlready').html(html);
@@ -80,9 +80,9 @@ function userLoggedIn(inUsers){
 		Game.otherUsers = new Set();
 	}
 	if(Array.isArray(inUsers)){
-		inUsers.forEach(e => Game.otherUsers.add(e));
+		inUsers.forEach(e => Game.otherUsers.add(JSON.stringify(e)));
 	} else {
-		Game.otherUsers.add(inUsers);
+		Game.otherUsers.add(JSON.stringify(inUsers));
 	}
 
 	//on UI
@@ -189,8 +189,9 @@ function loginRejected(response){
 }
 
 function userDisconnected(user){
+	console.log(`userDisconnected :: user=${user}`);
 	//logically
-	Game.otherUsers.delete(user);
+	Game.otherUsers.delete(JSON.stringify(user));
 
 	//on UI
 	uiRefreshUsersList();

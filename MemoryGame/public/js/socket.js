@@ -51,7 +51,7 @@ SOCKET.on('userLoggedIn', function(data) {
 
 SOCKET.on('userDisconnected', function(data) {
 	console.log(`userDisconnected :: data=${data}`);
-	var newUser = JSON.parse(data);
+	var user = JSON.parse(data);
 	userDisconnected(user);
 });
 
