@@ -10,43 +10,49 @@ switchOnSocket();
 function switchOnSocket(){
 
 SOCKET.on('login', function() {
-Application.state = 'CONNECTED';
-updateUI();
+	Application.state = 'CONNECTED';
+	updateUI();
 });
 
 SOCKET.on('gameCreated', function(data) {
-createGame( JSON.parse(data) );
-Application.state = 'SET_GAME';
-updateUI();
+	createGame( JSON.parse(data) );
+	Application.state = 'SET_GAME';
+	updateUI();
 });
 
 SOCKET.on('joinedGame', function(data) {
-thisUserJoinedGame( JSON.parse(data) );
-Application.state = 'WAIT_SETTING_GAME';
-updateUI();
+	thisUserJoinedGame( JSON.parse(data) );
+	Application.state = 'WAIT_SETTING_GAME';
+	updateUI();
 });
 
 SOCKET.on('loginRejected', function(data) {
-//TBD: inform user something went wrong
-console.log(`loginRejected :: ${JSON.parse(data).response}`);
-loginRejected(JSON.parse(data).response);
+	//TBD: inform user something went wrong
+	console.log(`loginRejected :: ${JSON.parse(data).response}`);
+	loginRejected(JSON.parse(data).response);
 
-//Goback to 'what do you want?'
-Application.state = 'CONNECTED';
-updateUI();
+	//Goback to 'what do you want?'
+	Application.state = 'CONNECTED';
+	updateUI();
 });
 
 SOCKET.on('usersLoggedInBefore', function(data) {
-console.log(`usersLoggedInBefore :: data=${data}`);
-var usersList = JSON.parse(data);
-refreshUsersList(usersList);
+	console.log(`usersLoggedInBefore :: data=${data}`);
+	var usersList = JSON.parse(data);
+	userLoggedIn(usersList);
 });
 
 SOCKET.on('userLoggedIn', function(data) {
-console.log(`userLoggedIn :: data=${data}`);
-var newUser = JSON.parse(data);
-userLoggedIn([newUser]);
-updateUI();
+	console.log(`userLoggedIn :: data=${data}`);
+	var newUser = JSON.parse(data);
+	userLoggedIn(newUser);
+	updateUI();
+});
+
+SOCKET.on('userDisconnected', function(data) {
+	console.log(`userDisconnected :: data=${data}`);
+	var newUser = JSON.parse(data);
+	userDisconnected(user);
 });
 
 }

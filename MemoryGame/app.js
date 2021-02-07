@@ -27,7 +27,11 @@ httpd.listen( appport );
 
 /* pseudo-random room ID generator */
 function getRandomString(inLen){
-return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, inLen);
+	var ret = '';
+	while(ret.length < inLen){
+		ret = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, inLen);
+	}
+return ret;
 }
 
 /*
@@ -63,28 +67,25 @@ function processLogin(socket, loginData){
 		var gid = chkResult['gameID'];
 		var gmr = gameRegistry[gid];
 		gmr.users.add(socket.user);
-		console.log(`users[${gid}]=${usersToString(gid)}`);
+		//console.log(`  ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
 		
 		//joined-to-game situation: inform other users + refresh users list
 		if( chkResult['response']==='joinedGame' ){
 			socket.broadcast.to(gid).emit('userLoggedIn', JSON.stringify(socket.user));
-			socket.emit('usersLoggedInBefore', JSON.stringify(gmr.users));
+			socket.emit('usersLoggedInBefore', JSON.stringify(Array.from(gmr.users)));
+			//console.log(`    ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
 		}
 	} else {
 		//inform client something went wrong
 		var msg = JSON.stringify({response: chkResult['response']});
-		console.log(`loginRejected ${msg}`);
+		//console.log(`loginRejected ${msg}`);
 		socket.emit('loginRejected', msg );
 	}
 }
 
 function usersToString(gid){
 	if(gameRegistry[gid] != undefined){
-		var mp = gameRegistry[gid].users;
-		console.log(`typeof mp :: ${typeof mp}, size=${mp.size()}`);
-		var arr = mp.values();
-		console.log(`typeof arr :: ${typeof arr}`);
-		return gameRegistry[gid].users.values().map(e=>e.name).join(", ");
+		return Array.from(gameRegistry[gid].users).map(e=>e.name).join(", ");
 	} else return "NoSuchGame";
 }
 
@@ -107,14 +108,14 @@ function checkLogin(loginMode, loginGameId, inUser){
 		//create and populate game registry entry
 		gameRegistry[gid] = {gameObj: new Game(gid,inUser), users: new Set()};
 		gameRegistry[gid].gameObj.state = 'CREATED';
-		console.log(`add user: ${gameRegistry[gid].users.add(inUser).size()}`);
+		gameRegistry[gid].users.add(inUser);
 		//console.log(`JSON(gameRegistry[gid])=${JSON.stringify(gameRegistry[gid])}, size=${gameRegistry[gid].users.size()}`);
 
 		//console.log(`  return: gid=${gid}, gameInitiator: ${inUser.name}`);
 		return {response: 'gameCreated', gameID: gid, gameInitiator: inUser };
 
 	} else if( loginMode==='JOIN_GAME' ) {
-		console.log(`JOIN_GAME inUser=${inUser.name}, gameID: ${loginGameId}`);
+		//console.log(`JOIN_GAME inUser=${inUser.name}, gameID: ${loginGameId}`);
 		//check game ID existence & state
 		var gid=loginGameId;
 		if(gameRegistry[gid] != undefined){
@@ -135,6 +136,14 @@ function checkLogin(loginMode, loginGameId, inUser){
 /* user disconnected */
 socket.on('disconnect', function() {
 	console.log(`disconnect by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'} on socket ${socket.id}`);
+	//remove user from rooms (Games)
+	var usr = socket.user;
+	for (var gid in gameRegistry) {
+		if(gameRegistry[gid].users.hasKey(usr)){
+			socket.broadcast.to(gid).emit('userDisconnected', JSON.stringify(socket.user));
+		}
+	}
+	//disable socket
 	socket.removeAllListeners();
 });
 

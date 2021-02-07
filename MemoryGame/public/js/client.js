@@ -60,28 +60,33 @@ updateProfileOnPage(inName, inAvatarSrc);
 updateUI();
 }
 
-function userLoggedIn(inUser){
-//logically
-if(Game.otherUsers == null){
-	Game.otherUsers = new Set();
+function uiRefreshUsersList(){
+	if(Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME'){
+		task = {tableHeaderClass: "tableHeader",
+				listCaption: "Users",
+				nameClass: "userName",
+				elems: Array.from(Game.otherUsers).map((e)=>{return {avatarSrc: e.avatar, name: e.name};})
+				};
+		html=$.templates('#tmplUserList').render(task);
+		$('#dvJoinedAlready').html(html);
+	}
 }
-Game.otherUsers.add(inUser);
 
-//on UI
-if(Application.state === 'SET_GAME'){
-	task = {tableHeaderClass: "tableHeader",
-			listCaption: "Users",
-			nameClass: "userName",
-			elems: Game.otherUsers.values().map((e)=>{return {avatarSrc: e.avatar, name: e.name};})
-			/*[
-				{avatarSrc: "https://image.flaticon.com/icons/png/128/3667/3667325.png", name: "Sarah Windsor"},
-				{avatarSrc: "https://image.flaticon.com/icons/png/128/1077/1077114.png", name: "John Doe"},
-				{avatarSrc: "https://image.flaticon.com/icons/png/128/3667/3667250.png", name: "Mr. White"}
-			]*/
-			};
-	html=$.templates('#tmplUserList').render(task);
-	$('#dvUsers').html(html);
-}
+//ANOTHER user successfully joined to the same game as THIS user => refresh users list with a single user
+//OR THIS user joined a game => refresh users list with already joined users at once
+function userLoggedIn(inUsers){
+	//logically
+	if(Game.otherUsers == null){
+		Game.otherUsers = new Set();
+	}
+	if(Array.isArray(inUsers)){
+		inUsers.forEach(e => Game.otherUsers.add(e));
+	} else {
+		Game.otherUsers.add(inUsers);
+	}
+
+	//on UI
+	uiRefreshUsersList();
 }
 
 $( document ).ready(function(){
@@ -91,7 +96,6 @@ connectToServer();
 
 /* Avatar chooser popup / Join game */
 $('#btnJoinGame').click(function(e){
-	console.log('#btnJoinGame clicked!');
 	Application.state = 'JOIN_GAME';
 	updateUI();
 	//show avatar chooser
@@ -102,7 +106,6 @@ $('#btnJoinGame').click(function(e){
 
 /* Avatar chooser popup / Start new game */
 $('#btnStartNewGame').click(function(e){
-	console.log('#btnStartNewGame clicked!');
 	Application.state = 'START_NEW_GAME';
 	updateUI();
 	//show avatar chooser
@@ -155,46 +158,42 @@ $('#dvProfile').html(html);
 }
 
 function createGame(gameData){
-//game ID
-$('#spGameID').html(gameData.gameID);
+	//game ID
+	$('#spGameID').html(gameData.gameID);
 
-//game initiator
-var task = {avatarSrc: gameData.gameInitiator.avatar, name: gameData.gameInitiator.name};
-html=$.templates('#tmplUserH1').render(task);
-$('#tblInitiatedBy').html(html);
+	//game initiator
+	var task = {avatarSrc: gameData.gameInitiator.avatar, name: gameData.gameInitiator.name};
+	html=$.templates('#tmplUserH1').render(task);
+	$('#tblInitiatedBy').html(html);
 
-//users joined already == none
-$('#dvJoinedAlready').html('');
+	//users joined already == none
+	$('#dvJoinedAlready').html('');
 }
 
 function thisUserJoinedGame(gameData){
-//THIS user successfully joined to SOMEONE ELSE's game => refresh known parameters + should
-createGame(gameData);//sorry the same settings should be done...
-//TBD: setting options should be disabled
-}
-
-function refreshUsersList(usersList){
-//TBD: ANOTHER user successfully joined to the same game as THIS user => refresh users list
-var usrs = usersList.values.map(function(e){return {avatarSrc: e.avatar, name: e.name}; });
-var task = {tableHeaderClass: "tableHeader",
-		listCaption: "Joined already",
-		nameClass: "userName",
-		elems: usrs
-		};
-var html=$.templates('#tmplUserList').render(task);
-$('#dvJoinedAlready').html(html);
+	//THIS user successfully joined to SOMEONE ELSE's game => refresh known parameters + should
+	createGame(gameData);//sorry the same settings should be done...
+	//TBD: setting options should be disabled
 }
 
 function loginRejected(response){
-var msg = 'Login unsuccessful! Game ID ' + $('#room').val()
-		+ (response==='ERR_NO_SUCH_GAME'
-					? ' does not exists.'
-					: (response==='ERR_GAME_NOT_ACCESSIBLE'
-								? ' is not accessible.'
-								: ' tried with wrong login mode.'
-					)
-		);
-$('#pConnResult').html(msg);
+	var msg = 'Login unsuccessful! Game ID ' + $('#room').val()
+			+ (response==='ERR_NO_SUCH_GAME'
+						? ' does not exists.'
+						: (response==='ERR_GAME_NOT_ACCESSIBLE'
+									? ' is not accessible.'
+									: ' tried with wrong login mode.'
+						)
+			);
+	$('#pConnResult').html(msg);
+}
+
+function userDisconnected(user){
+	//logically
+	Game.otherUsers.delete(user);
+
+	//on UI
+	uiRefreshUsersList();
 }
 
 
