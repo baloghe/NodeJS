@@ -15,6 +15,7 @@ function User (name, avatar){
 
 	this.name = name;
 	this.avatar = avatar;
+	this.strJSON = JSON.stringify({"name": name, "avatar": avatar});
 
 	this.print = function(){
 		return `id=${this.getId()}, name=${this.name}, avatar=${this.avatar}`;

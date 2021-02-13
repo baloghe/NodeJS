@@ -38,7 +38,7 @@ SOCKET.on('loginRejected', function(data) {
 
 SOCKET.on('usersLoggedInBefore', function(data) {
 	console.log(`usersLoggedInBefore :: data=${data}`);
-	var usersList = JSON.parse(data);
+	var usersList = JSON.parse(data).map(u=>JSON.parse(u));
 	userLoggedIn(usersList);
 });
 
