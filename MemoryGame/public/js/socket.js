@@ -15,7 +15,7 @@ SOCKET.on('login', function() {
 });
 
 SOCKET.on('gameCreated', function(data) {
-	createGame( JSON.parse(data) );
+	createGame( JSON.parse(data), true );
 	Application.state = 'SET_GAME';
 	updateUI();
 });

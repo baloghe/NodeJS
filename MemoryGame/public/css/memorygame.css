@@ -66,6 +66,13 @@ font-size: 13px;
 color: red;
 }
 
+.success {
+font-family: 'Orbitron', arial, serif;
+font-weight: bold;
+font-size: 13px;
+color: green;
+}
+
 .btn {
 font-family: 'Orbitron', arial, serif;
 font-weight: bold;

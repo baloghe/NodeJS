@@ -90,14 +90,17 @@
 
 				</td><td>
 					<!-- Buttons -->
-					<table>
+					<table id="tblLoginButtons">
 						<tr>
 							<td><button id="btnJoinGame" type="button" value="JoinGame"><span class="btn">Join game</span></button></td>
 							<td><button id="btnStartNewGame" type="button" value="StartNewGame"><span class="btn">Start new game</span></button></td>
 							<td><button id="btnPlayAgainstComputer" type="button" value="Play against the Computer"><span class="btn">Play against the Computer</span></button></td>
 						</tr>
 					</table>
-					<div><p id="pConnResult" class="error">&nbsp.</p></div>
+					<!-- App state -->
+					<div>
+						<p id="pConnResult" class="error">&nbsp;</p>
+					</div>
 				</td>
 			</tr>
 		</table>
@@ -161,7 +164,7 @@
 						<tr>
 							<td><p class="gameParamName">Number of cards</p></td>
 							<td>
-								<select name="selNumCards">
+								<select id="setNumCards" name="selNumCards">
 									<option value="8pairs">8 pairs</option>
 									<option value="16pairs">16 pairs</option>
 									<option value="32pairs">32 pairs</option>
@@ -171,7 +174,7 @@
 						<tr>
 							<td><p class="gameParamName">Limit on thinking time</p></td>
 							<td>
-								<select name="selLimitThinkingTime">
+								<select id="setLimitThinkingTime" name="selLimitThinkingTime">
 									<option value="none">none</option>
 									<option value="10sec">10 secs</option>
 									<option value="20sec">20 secs</option>
@@ -181,13 +184,13 @@
 						<tr>
 							<td><p class="gameParamName">Computer as player</p></td>
 							<td>
-								<input type="checkbox" id="chkComputerPlayer" name="chkComputerPlayer" value="chkComputerPlayer">
+								<input type="checkbox" id="chkComputerPlayer" name="chkComputerPlayer" value="chkComputerPlayer"/>
 							</td>
 						</tr>
 						<tr>
 							<td><p class="gameParamName">Max human players</p></td>
 							<td>
-								<select name="selMaxHumanPlayers">
+								<select id="setMaxHumanPlayers" name="selMaxHumanPlayers">
 									<option value="2">2</option>
 									<option value="3">3</option>
 									<option value="4">4</option>
@@ -221,7 +224,9 @@
 				</td>
 				<td>
 					<!-- Buttons -->
-					<button id="btnJoinGame" type="button" value="JoinGame"><span class="btn">Start game</span></button>
+					<button id="btnFinishSettings" type="button" value="FinishSettings"><span class="btn">Start game</span></button>
+					<button id="btnLeaveGame" type="button" value="LeaveGame"><span class="btn">Leave game</span></button>
+					<button id="btnCancelGame" type="button" value="CancelGame"><span class="btn">Cancel game</span></button>
 				</td>
 			</tr>
 		</table>
@@ -375,4 +380,14 @@
 		{{/if}}
 	</table>
 </script>
+
+<!-- Selection template -->
+<script id="tmplSelectOptions" type="text/x-jsrender">
+	{{if elems.length}}
+		{{for elems itemVar="~elem"}}
+			<option value="{{:value}}">{{:caption}}</option>
+		{{/for}}
+	{{/if}}
+</script>
+
 </html>

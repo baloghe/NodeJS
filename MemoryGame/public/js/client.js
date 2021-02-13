@@ -1,64 +1,85 @@
 
 function updateUI(){
-console.log(`updateUI :: Application.state=${Application.state}`);
+	console.log(`updateUI :: Application.state=${Application.state}`);
 
-if( Application.state === 'OPENED' ){
-	$('#btnConnect').prop('disabled', true);
-	$('#btnPlayAgainstComputer').prop('disabled', true);
-	$('#scStartGame').removeClass('hide');
-	$('#scGameSettings').addClass('hide');
-	$('#scGame').addClass('hide');
-	$('#scResults').addClass('hide');
-} else if( Application.state === 'CONNECTED' ){
-	$('#btnConnect').prop('disabled', false);
-	$('#btnPlayAgainstComputer').prop('disabled', false);
-	$('#scStartGame').removeClass('hide');
-	$('#scGameSettings').addClass('hide');
-	$('#scGame').addClass('hide');
-	$('#scResults').addClass('hide');
-} else if( Application.state === 'JOIN_GAME' || Application.state === 'START_NEW_GAME' ){
-	$('#btnConnect').prop('disabled', true);
-	$('#btnPlayAgainstComputer').prop('disabled', true);
-	$('#scStartGame').removeClass('hide');
-	$('#scGameSettings').addClass('hide');
-	$('#scGame').addClass('hide');
-	$('#scResults').addClass('hide');
-} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' ){
-	$('#btnConnect').prop('disabled', true);
-	$('#btnPlayAgainstComputer').prop('disabled', true);
-	$('#scStartGame').addClass('hide');
-	$('#scGameSettings').removeClass('hide');
-	$('#scGame').addClass('hide');
-	$('#scResults').addClass('hide');
-} else if( Application.state === 'IN_GAME' ){
-	$('#scStartGame').addClass('hide');
-	$('#scGameSettings').addClass('hide');
-	$('#scGame').removeClass('hide');
-	$('#scResults').addClass('hide');
-} else if( Application.state === 'GAME_FINISHED' ){
-	$('#scStartGame').addClass('hide');
-	$('#scGameSettings').addClass('hide');
-	$('#scGame').addClass('hide');
-	$('#scResults').removeClass('hide');
-}
+	if( Application.state === 'OPENED' ){
+		$('#btnConnect').prop('disabled', true);
+		$('#btnPlayAgainstComputer').prop('disabled', true);
+		$('#scStartGame').removeClass('hide');
+		$('#scGameSettings').addClass('hide');
+		$('#scGame').addClass('hide');
+		$('#scResults').addClass('hide');
+	} else if( Application.state === 'CONNECTED' ){
+		$('#btnConnect').prop('disabled', false);
+		$('#btnPlayAgainstComputer').prop('disabled', false);
+		$('#scStartGame').removeClass('hide');
+		$('#scGameSettings').addClass('hide');
+		$('#scGame').addClass('hide');
+		$('#scResults').addClass('hide');
+	} else if( Application.state === 'JOIN_GAME' || Application.state === 'START_NEW_GAME' ){
+		$('#btnConnect').prop('disabled', true);
+		$('#btnPlayAgainstComputer').prop('disabled', true);
+		$('#scStartGame').removeClass('hide');
+		$('#scGameSettings').addClass('hide');
+		$('#scGame').addClass('hide');
+		$('#scResults').addClass('hide');
+	} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' ){
+		//$('#btnConnect').prop('disabled', true);
+		//$('#btnPlayAgainstComputer').prop('disabled', true);
+		//$('#scStartGame').addClass('hide');
+		$('#tblLoginButtons').addClass('hide');
+		$('#scGameSettings').removeClass('hide');
+		$('#scGame').addClass('hide');
+		$('#scResults').addClass('hide');
+		enableSettings( Application.state === 'SET_GAME' );
+	} else if( Application.state === 'IN_GAME' ){
+		$('#scStartGame').addClass('hide');
+		$('#scGameSettings').addClass('hide');
+		$('#scGame').removeClass('hide');
+		$('#scResults').addClass('hide');
+	} else if( Application.state === 'GAME_FINISHED' ){
+		$('#scStartGame').addClass('hide');
+		$('#scGameSettings').addClass('hide');
+		$('#scGame').addClass('hide');
+		$('#scResults').removeClass('hide');
+	}
 }
 
 //sets name and avatar
 function setNameAvatar(inName, inAvatarSrc){
-//local logic
-if( !Game.currentUser ){
-	Game.currentUser = new User(inName, inAvatarSrc);
-} else {
-	Game.currentUser.name = inName;
-	Game.currentUser.avatar = inAvatarSrc;
+	//local logic
+	if( !Game.currentUser ){
+		Game.currentUser = new User(inName, inAvatarSrc);
+	} else {
+		Game.currentUser.name = inName;
+		Game.currentUser.avatar = inAvatarSrc;
+	}
+
+	//on local page
+	updateProfileOnPage(inName, inAvatarSrc);
+
+	//update UI
+	updateUI();
 }
 
-//on local page
-updateProfileOnPage(inName, inAvatarSrc);
-
-//update UI
-updateUI();
+//enables/disables game settings options
+function enableSettings(inEnable){
+	$('#setNumCards').prop('disabled', (!inEnable));
+	$('#setLimitThinkingTime').prop('disabled', (!inEnable));
+	$('#chkComputerPlayer').prop('disabled', (!inEnable));
+	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
+	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
+	if(inEnable){
+		$('#btnFinishSettings').removeClass('hide');
+		$('#btnLeaveGame').addClass('hide');
+		$('#btnCancelGame').removeClass('hide');
+	} else {
+		$('#btnFinishSettings').addClass('hide');
+		$('#btnLeaveGame').removeClass('hide');
+		$('#btnCancelGame').addClass('hide');		
+	}
 }
+
 
 function uiRefreshUsersList(){
 	if(Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME'){
@@ -157,7 +178,7 @@ html=$.templates('#tmplUserList').render(task);
 $('#dvProfile').html(html);
 }
 
-function createGame(gameData){
+function createGame(gameData, asInitiator){
 	//game ID
 	$('#spGameID').html(gameData.gameID);
 
@@ -168,11 +189,19 @@ function createGame(gameData){
 
 	//users joined already == none
 	$('#dvJoinedAlready').html('');
+	
+	//pConnResult
+	$('#pConnResult').removeClass('error');
+	$('#pConnResult').addClass('success');
+	$('#pConnResult').html(
+			asInitiator ? "Game initiated... Now complete settings and push Start!"
+			            : "Successfully joined. Wait for Initiator to start it!"
+		);
 }
 
 function thisUserJoinedGame(gameData){
 	//THIS user successfully joined to SOMEONE ELSE's game => refresh known parameters + should
-	createGame(gameData);//sorry the same settings should be done...
+	createGame(gameData, false);//sorry the same settings should be done...
 	//TBD: setting options should be disabled
 }
 
@@ -284,4 +313,17 @@ console.log('Results rendered...');
 html=$.templates('#tmplResultsNew').render(task);
 //console.log(html);
 console.log('Same rendered with tmplResultsNew...');
+
+//render game options
+task = {elems: CONSTANTS.getNumberOfCardsOptions()};
+html=$.templates('#tmplSelectOptions').render(task);
+$('#setNumCards').html(html);
+task = {elems: CONSTANTS.getLimitThinkingTimeOptions()};
+html=$.templates('#tmplSelectOptions').render(task);
+$('#setLimitThinkingTime').html(html);
+task = {elems: CONSTANTS.getMaxHumanPlayersOptions()};
+html=$.templates('#tmplSelectOptions').render(task);
+$('#setMaxHumanPlayers').html(html);
+
+console.log('Gam options rendered...');
 }

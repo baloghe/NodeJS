@@ -35,7 +35,7 @@ return ret;
 }
 
 /*
-GameID -> {gameObj: Game(.,.), users: Set()}
+GameID -> {gameObj: Game(.,.), users: Set(User.strJSON)}
 */
 var gameRegistry = {};
 
@@ -66,12 +66,12 @@ function processLogin(socket, loginData){
 		
 		var gid = chkResult['gameID'];
 		var gmr = gameRegistry[gid];
-		gmr.users.add(socket.user);
+		gmr.users.add(socket.user.strJSON);
 		//console.log(`  ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
 		
 		//joined-to-game situation: inform other users + refresh users list
 		if( chkResult['response']==='joinedGame' ){
-			socket.broadcast.to(gid).emit('userLoggedIn', JSON.stringify(socket.user));
+			socket.broadcast.to(gid).emit('userLoggedIn', socket.user.strJSON);
 			socket.emit('usersLoggedInBefore', JSON.stringify(Array.from(gmr.users)));
 			//console.log(`    ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
 		}
@@ -108,7 +108,7 @@ function checkLogin(loginMode, loginGameId, inUser){
 		//create and populate game registry entry
 		gameRegistry[gid] = {gameObj: new Game(gid,inUser), users: new Set()};
 		gameRegistry[gid].gameObj.state = 'CREATED';
-		gameRegistry[gid].users.add(inUser);
+		gameRegistry[gid].users.add(inUser.strJSON);
 		//console.log(`JSON(gameRegistry[gid])=${JSON.stringify(gameRegistry[gid])}, size=${gameRegistry[gid].users.size()}`);
 
 		//console.log(`  return: gid=${gid}, gameInitiator: ${inUser.name}`);
@@ -137,10 +137,10 @@ function checkLogin(loginMode, loginGameId, inUser){
 socket.on('disconnect', function() {
 	console.log(`disconnect by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'} on socket ${socket.id}`);
 	//remove user from rooms (Games)
-	var usr = socket.user;
+	var usr = socket.user.strJSON;
 	for (var gid in gameRegistry) {
 		if(gameRegistry[gid].users.has(usr)){
-			socket.broadcast.to(gid).emit('userDisconnected', JSON.stringify(socket.user));
+			socket.broadcast.to(gid).emit('userDisconnected', usr);
 			gameRegistry[gid].users.delete(usr);
 		}
 	}
