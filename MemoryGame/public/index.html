@@ -223,10 +223,20 @@
 					</table>
 				</td>
 				<td>
-					<!-- Buttons -->
-					<button id="btnFinishSettings" type="button" value="FinishSettings"><span class="btn">Start game</span></button>
-					<button id="btnLeaveGame" type="button" value="LeaveGame"><span class="btn">Leave game</span></button>
-					<button id="btnCancelGame" type="button" value="CancelGame"><span class="btn">Cancel game</span></button>
+					<table>
+						<tr>
+							<td>
+								<!-- Buttons -->
+								<button id="btnFinishSettings" type="button" value="FinishSettings"><span class="btn">Start game</span></button>
+								<button id="btnLeaveGame" type="button" value="LeaveGame"><span class="btn">Leave game</span></button>
+								<button id="btnCancelGame" type="button" value="CancelGame"><span class="btn">Cancel game</span></button>
+							</td>
+							<td>
+								<!-- Remaining secs -->
+								<p id="pRemainingSecs" class="clock">Game starts in <span id="spRemainingSecs"></span> s</p>
+							</td>
+						</tr>
+					</table>
 				</td>
 			</tr>
 		</table>

@@ -23,15 +23,20 @@ function updateUI(){
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
-	} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' ){
-		//$('#btnConnect').prop('disabled', true);
-		//$('#btnPlayAgainstComputer').prop('disabled', true);
-		//$('#scStartGame').addClass('hide');
+	} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' || Application.state === 'WAIT_FOR_START' ){
 		$('#tblLoginButtons').addClass('hide');
 		$('#scGameSettings').removeClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
 		enableSettings( Application.state === 'SET_GAME' );
+		showGameSettingButtons( CLIENT_GAME.currentUser.strJSON == CLIENT_GAME.getInitiatedBy().strJSON );
+		if( Application.state === 'WAIT_FOR_START' ){
+			$('#pRemainingSecs').removeClass('hide');
+			$('#btnFinishSettings').addClass('hide');
+			$('#pConnResult').addClass('hide');
+		} else {
+			$('#pRemainingSecs').addClass('hide');
+		}
 	} else if( Application.state === 'IN_GAME' ){
 		$('#scStartGame').addClass('hide');
 		$('#scGameSettings').addClass('hide');
@@ -48,11 +53,11 @@ function updateUI(){
 //sets name and avatar
 function setNameAvatar(inName, inAvatarSrc){
 	//local logic
-	if( !Game.currentUser ){
-		Game.currentUser = new User(inName, inAvatarSrc);
+	if( !CURRENT_USER ){
+		CURRENT_USER = new User(inName, inAvatarSrc);
 	} else {
-		Game.currentUser.name = inName;
-		Game.currentUser.avatar = inAvatarSrc;
+		CURRENT_USER.name = inName;
+		CURRENT_USER.avatar = inAvatarSrc;
 	}
 
 	//on local page
@@ -69,7 +74,11 @@ function enableSettings(inEnable){
 	$('#chkComputerPlayer').prop('disabled', (!inEnable));
 	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
 	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
-	if(inEnable){
+}
+
+//shows necessary buttons based on role
+function showGameSettingButtons(inInitiator){
+	if(inInitiator){
 		$('#btnFinishSettings').removeClass('hide');
 		$('#btnLeaveGame').addClass('hide');
 		$('#btnCancelGame').removeClass('hide');
@@ -77,16 +86,15 @@ function enableSettings(inEnable){
 		$('#btnFinishSettings').addClass('hide');
 		$('#btnLeaveGame').removeClass('hide');
 		$('#btnCancelGame').addClass('hide');		
-	}
+	}	
 }
-
 
 function uiRefreshUsersList(){
 	if(Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME'){
 		task = {tableHeaderClass: "tableHeader",
 				listCaption: "Users",
 				nameClass: "userName",
-				elems: Array.from(Game.otherUsers).map((x)=>{var e = JSON.parse(x); return {avatarSrc: e.avatar, name: e.name};})
+				elems: Array.from(CLIENT_GAME.otherUsers).map((x)=>{var e = JSON.parse(x); return {avatarSrc: e.avatar, name: e.name};})
 				};
 		html=$.templates('#tmplUserList').render(task);
 		$('#dvJoinedAlready').html(html);
@@ -97,88 +105,145 @@ function uiRefreshUsersList(){
 //OR THIS user joined a game => refresh users list with already joined users at once
 function userLoggedIn(inUsers){
 	//logically
-	if(Game.otherUsers == null){
-		Game.otherUsers = new Set();
+	if(CLIENT_GAME.otherUsers == null){
+		CLIENT_GAME.otherUsers = new Set();
 	}
 	if(Array.isArray(inUsers)){
-		inUsers.forEach(e => Game.otherUsers.add(JSON.stringify(e)));
+		inUsers.forEach(e => CLIENT_GAME.otherUsers.add(JSON.stringify(e)));
 	} else {
-		Game.otherUsers.add(JSON.stringify(inUsers));
+		CLIENT_GAME.otherUsers.add(JSON.stringify(inUsers));
 	}
 
 	//on UI
 	uiRefreshUsersList();
+	if(!(Array.isArray(inUsers))){
+		updateUI();
+	}
 }
 
 $( document ).ready(function(){
-testUI();
-updateUI();
-connectToServer();
-
-/* Avatar chooser popup / Join game */
-$('#btnJoinGame').click(function(e){
-	Application.state = 'JOIN_GAME';
+	testUI();
 	updateUI();
-	//show avatar chooser
-	$('#pGameIdInput').removeClass('hide');
-	$('#pGameIdInput').prop('required',true);
-	$('#dvAvChooser').popup('show');
-});
+	connectToServer();
 
-/* Avatar chooser popup / Start new game */
-$('#btnStartNewGame').click(function(e){
-	Application.state = 'START_NEW_GAME';
-	updateUI();
-	//show avatar chooser
-	$('#pGameIdInput').addClass('hide');
-	$('#pGameIdInput').prop('required',false);
-	$('#dvAvChooser').popup('show');
-});
+	/* Avatar chooser popup / Join game */
+	$('#btnJoinGame').click(function(e){
+		Application.state = 'JOIN_GAME';
+		updateUI();
+		//show avatar chooser IF necessary
+		$('#pGameIdInput').removeClass('hide');
+		$('#pGameIdInput').prop('required',true);
+		$('#dvAvChooser').popup('show');
+	});
 
-$('#tblAvChooser .avatar').click(function(e){
-	$('#tblAvChooser').find('>*>tr>td, >tr>td').each(
-		function(){$(this).removeClass('chosen');}
-	);
-	$(this).parent().addClass('chosen');
-	$('#imgAvSelected').attr('src', $(this).attr('src'));
-	$('#avatarSelected').val( $(this).attr('src') );
-});
+	/* Avatar chooser popup / Start new game */
+	$('#btnStartNewGame').click(function(e){
+		Application.state = 'START_NEW_GAME';
+		updateUI();
+		//show avatar chooser IF necessary
+		if(Application.hasIdentity){
+			CLIENT_SOCKET.loginToServer(null);
+		} else {
+			$('#pGameIdInput').addClass('hide');
+			$('#pGameIdInput').prop('required',false);
+			$('#dvAvChooser').popup('show');
+		}
+	});
 
-$('#frmSelNamAv').submit(function(e) {
-	e.preventDefault(); // avoid to execute the actual submit of the form.
-	//check if everything is OK
-	let valid = true;
-	$('[required]').each(function() {
-			if ($(this).is(':invalid')) valid=false;
-		});
-	if (!valid) return;
-	$("#btnModSettings").html('Change');
-	setNameAvatar( $('#name').val(), $('#avatarSelected').val() );
-	var gid = (Application.state==='START_NEW_GAME' ? null : $('#room').val());
-	loginToServer(gid);
-	$('#dvAvChooser').popup('hide');
-});
+	$('#tblAvChooser .avatar').click(function(e){
+		$('#tblAvChooser').find('>*>tr>td, >tr>td').each(
+			function(){$(this).removeClass('chosen');}
+		);
+		$(this).parent().addClass('chosen');
+		$('#imgAvSelected').attr('src', $(this).attr('src'));
+		$('#avatarSelected').val( $(this).attr('src') );
+	});
 
-// Initialize the plugin
-$('#dvAvChooser').popup({
-	 focusdelay: 300
-	,outline: true
-});
+	$('#frmSelNamAv').submit(function(e) {
+		e.preventDefault(); // avoid to execute the actual submit of the form.
+		//check if everything is OK
+		let valid = true;
+		$('[required]').each(function() {
+				if ($(this).is(':invalid')) valid=false;
+			});
+		if (!valid) return;
+		$("#btnModSettings").html('Change');
+		setNameAvatar( $('#name').val(), $('#avatarSelected').val() );
+		var gid = (Application.state==='START_NEW_GAME' ? null : $('#room').val());
+		CLIENT_SOCKET.loginToServer(gid);
+		$('#dvAvChooser').popup('hide');
+	});
+	
+	$('#btnFinishSettings').click(function(e){
+		//TBD: initiator finishes settings =>
+		//	1) register settings locally
+		//	2) send to Server for further use (store and broadcast)
+		CLIENT_GAME.constants = {
+			numCards:			$('#setNumCards').val(),
+			limitThinkingTime:	$('#setLimitThinkingTime').val(),
+			computerPlayer:		$("#chkComputerPlayer").is(":checked"),
+			maxHumanPlayers:	$('#setMaxHumanPlayers').val()
+		};
+		CLIENT_SOCKET.gameSettingsFinalized( CLIENT_GAME.getGameID(), CLIENT_GAME.constants );
+	});
+	
+	$('#btnCancelGame').click(function(e){
+		//TBD: initiator decides to call off the game
+		//	1) rollback locally to 'CONNECTED' but already having an identity
+		//	2) send to Server to kick out everyone of the room and destroy it completely
+	});
+	
+	$('#btnLeaveGame').click(function(e){
+		//TBD: non-initiator user wants to leave the game
+		//	1) rollback locally to 'CONNECTED' but already having an identity
+		//	2) send to Server to inform other users in room
+	});
+
+	// Initialize the plugin
+	$('#dvAvChooser').popup({
+		 focusdelay: 300
+		,outline: true
+	});
 });
 
 function updateProfileOnPage(inName, inAvatarSrc){
-task = {tableHeaderClass: "tableHeader",
-		listCaption: "Profile",
-		nameClass: "userName",
-		elems: [
-			{avatarSrc: inAvatarSrc, name: inName}
-		]
-		};
-html=$.templates('#tmplUserList').render(task);
-$('#dvProfile').html(html);
+	task = {tableHeaderClass: "tableHeader",
+			listCaption: "Profile",
+			nameClass: "userName",
+			elems: [
+				{avatarSrc: inAvatarSrc, name: inName}
+			]
+			};
+	html=$.templates('#tmplUserList').render(task);
+	$('#dvProfile').html(html);
 }
 
-function createGame(gameData, asInitiator){
+function remainingSecToStart(inSec){
+	//TBD: another second elapsed => show it on screen!
+	$('#spRemainingSecs').html(inSec);
+}
+
+function gameSettingsFinalized(inGameConstants){
+	//TBD: game settings have been finalized => disable them even for the initiator!
+	console.log(`client.gameSettingsFinalized :: inGameConstants=${inGameConstants}`);
+	//logically
+	CLIENT_GAME.constants = inGameConstants;
+	Application.state = 'WAIT_FOR_START';
+	
+	//on UI
+	$('#setNumCards').val(CLIENT_GAME.constants.numCards);
+	$('#setLimitThinkingTime').val(CLIENT_GAME.constants.limitThinkingTime);
+	$('#chkComputerPlayer').prop('checked', CLIENT_GAME.constants.computerPlayer);
+	$('#setMaxHumanPlayers').val(CLIENT_GAME.constants.maxHumanPlayers);
+	
+	updateUI();	
+}
+
+function processCreateGame(gameData, asInitiator){
+	//Logically
+	CLIENT_GAME = new Game(gameData.gameID, gameData.gameInitiator);
+	CLIENT_GAME.currentUser = CURRENT_USER;
+	
 	//game ID
 	$('#spGameID').html(gameData.gameID);
 
@@ -199,10 +264,24 @@ function createGame(gameData, asInitiator){
 		);
 }
 
+function thisUserCreatedGame(gameData){
+	//THIS user successfully created a game
+	processCreateGame(gameData, true);
+	
+	//Set application state
+	Application.state = 'SET_GAME';
+	Application.hasIdentity = true;
+	updateUI();
+}
+
 function thisUserJoinedGame(gameData){
-	//THIS user successfully joined to SOMEONE ELSE's game => refresh known parameters + should
-	createGame(gameData, false);//sorry the same settings should be done...
-	//TBD: setting options should be disabled
+	//THIS user successfully joined to SOMEONE ELSE's game
+	processCreateGame(gameData, false);
+	
+	//Set application state
+	Application.state = 'WAIT_SETTING_GAME';
+	Application.hasIdentity = true;
+	updateUI();
 }
 
 function loginRejected(response){
@@ -215,12 +294,17 @@ function loginRejected(response){
 						)
 			);
 	$('#pConnResult').html(msg);
+
+	//Go back to 'what do you want?'
+	Application.state = 'CONNECTED';
+	Application.hasIdentity = false;
+	updateUI();
 }
 
 function userDisconnected(user){
 	console.log(`userDisconnected :: user=${user}`);
 	//logically
-	Game.otherUsers.delete(JSON.stringify(user));
+	CLIENT_GAME.otherUsers.delete(JSON.stringify(user));
 
 	//on UI
 	uiRefreshUsersList();

@@ -73,6 +73,13 @@ font-size: 13px;
 color: green;
 }
 
+.clock {
+font-family: 'Orbitron', arial, serif;
+font-weight: bold;
+font-size: 13px;
+color: orange;
+}
+
 .btn {
 font-family: 'Orbitron', arial, serif;
 font-weight: bold;

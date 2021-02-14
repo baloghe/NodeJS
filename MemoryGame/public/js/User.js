@@ -23,10 +23,11 @@ function User (name, avatar){
 }
 return User;
 })();
+var CURRENT_USER = null;
 
 //Module export
 try {
-module.exports = User;
+	module.exports = User;
 } catch (error) {
-//do nothing, locally this makes no sense
+	//do nothing, locally this makes no sense
 }

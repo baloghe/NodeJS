@@ -23,6 +23,8 @@ var Constants = (function(){
 				   ];
 		}
 		
+		this.getWaitSecBeforeStart = function (){return 10;}
+		
 	}
 
 	return Constants;
@@ -31,11 +33,8 @@ var Constants = (function(){
 var CONSTANTS = new Constants();
 
 var Application = {
-state : 'OPENED' /*,
-isConnected : false,
-isLoginStarted: false,
-isLoginFinished: false
-*/
+	state : 'OPENED' ,
+	hasIdentity : false
 }
 
 var Game = (function() {
@@ -56,7 +55,10 @@ var CLIENT_GAME = null;
 
 //Module export
 try {
-	module.exports = Game;
+	module.exports = {
+			Game: 		Game,
+			Constants:	Constants
+		};
 } catch (error) {
 	//do nothing, locally this makes no sense
 }
