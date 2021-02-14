@@ -82,7 +82,7 @@ io.sockets.on('connection', function (socket) {
 		console.log(`gameSettingsFinalized (received) :: ${dataJSON}`);
 		
 		var msg = JSON.parse( dataJSON );
-		var gid = msg["gameId"];		
+		var gid = msg["gameId"];
 		
 		//check if initiator really initiated the game
 		var init = gameRegistry[gid].gameObj.getInitiatedBy();
@@ -107,6 +107,30 @@ io.sockets.on('connection', function (socket) {
 			console.log(`  ERR_WRONG_INITIATOR: init.strJSON=${init.strJSON} , socket.user.strJSON=${socket.user.strJSON}`);
 			socket.emit('ERR_WRONG_INITIATOR', null );
 		}
+	});
+	
+	socket.on('leaveGame', dataJSON => {
+		console.log(`leaveGame (received) :: ${dataJSON}`);
+		
+		var msg = JSON.parse( dataJSON );
+		var gid = msg["gameId"];
+		
+		var usr = socket.user.strJSON;
+		socket.broadcast.to(gid).emit('userDisconnected', usr); //much enough for other users, even though user has not disconnected
+		gameRegistry[gid].users.delete(usr);
+		
+		socket.leave(gid);
+	});
+	
+	socket.on('cancelGame', dataJSON => {
+		//TBD!!!!!!!!!!
+		//everyone kicked out of room + inform and handle client side
+		console.log(`cancelGame :: TBD!!!!! initiator cancels game ${dataJSON}`);
+		
+		var msg = JSON.parse( dataJSON );
+		var gid = msg["gameId"];
+		
+		var usr = socket.user.strJSON;
 	});
 
 	/* user disconnected */

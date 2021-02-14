@@ -191,12 +191,20 @@ $( document ).ready(function(){
 		//TBD: initiator decides to call off the game
 		//	1) rollback locally to 'CONNECTED' but already having an identity
 		//	2) send to Server to kick out everyone of the room and destroy it completely
+		Application.state = 'CONNECTED';
+		CLIENT_SOCKET.cancelGame( CLIENT_GAME.getGameID() );
+		CLIENT_GAME = null;
+		updateUI();
 	});
 	
 	$('#btnLeaveGame').click(function(e){
 		//TBD: non-initiator user wants to leave the game
 		//	1) rollback locally to 'CONNECTED' but already having an identity
 		//	2) send to Server to inform other users in room
+		Application.state = 'CONNECTED';
+		CLIENT_SOCKET.leaveGame( CLIENT_GAME.getGameID() );
+		CLIENT_GAME = null;
+		updateUI();
 	});
 
 	// Initialize the plugin

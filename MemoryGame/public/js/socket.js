@@ -88,11 +88,15 @@ var SWP = (function(){
 		}
 
 		this.cancelGame = function (inGameId){
-			//TBD initiator cancels this game
+			var msgData = {gameId: inGameId};
+			console.log(`cancelGame :: msgData=${JSON.stringify(msgData)}`);
+			SOCKET.emit('cancelGame', JSON.stringify(msgData));
 		}
 
 		this.leaveGame = function (inGameId){
-			//TBD non-initiator leaves this game
+			var msgData = {gameId: inGameId};
+			console.log(`leaveGame :: msgData=${JSON.stringify(msgData)}`);
+			SOCKET.emit('leaveGame', JSON.stringify(msgData));
 		}
 
 	}
