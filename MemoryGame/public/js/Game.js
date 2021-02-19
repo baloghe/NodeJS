@@ -39,18 +39,206 @@ var Application = {
 
 var Game = (function() {
     function Game(inGameID, inInitiatedBy) {
+		let _gameID = inGameID;
+		let _initiatedBy = inInitiatedBy;
+		
         this.getGameID = function() {
-            return inGameID;
+            return _gameID;
         };
         this.getInitiatedBy = function() {
-            return inInitiatedBy;
+            return _initiatedBy;
         };
     }
 
     return Game;
 }());
-
 var CLIENT_GAME = null;
+
+var CardInfo = (function() {
+    function CardInfo(cardID, url, artist, creationDate, caption, otherInfo) {
+		let _cardID = cardID;
+		let _url = url;
+		let _artist = artist;
+		let _creationDate = creationDate;
+		let _caption = caption;
+		let _otherInfo = otherInfo;
+		
+        this.getCardID = function() {
+            return _cardID;
+        };
+        this.getUrl = function() {
+            return _url;
+        };
+        this.getArtist = function() {
+            return _artist;
+        };
+        this.getCreationDate = function() {
+            return _creationDate;
+        };
+        this.getCaption = function() {
+            return _caption;
+        };
+        this.getOtherInfo = function() {
+            return _otherInfo;
+        };
+    }
+
+    return CardInfo;
+}());
+
+var Card = (function() {
+    function Card(inLinearPos) {
+		let _linPos = inLinearPos;
+		let _hasPic = false;
+		let _info = null;
+		let _found = false;
+		let _foundBy = null;
+		
+        this.getLinearPos = function() {
+            return _linPos;
+        };
+		
+		this.hasPic = function(b) {
+			if(typeof b !== 'undefined') {
+				_hasPic = (b ? true : false);
+            } else return _hasPic;
+        };
+		
+		this.info = function(data) {
+            if(typeof data !== 'undefined') {
+				_info = data;
+            } else return _info;
+        };
+		
+		this.found = function(b) {
+			if(typeof b !== 'undefined') {
+				_found = (b ? true : false);
+            } else return _found;
+        };
+		
+		this.foundBy = function(data) {
+            if(typeof data !== 'undefined') {
+				_foundBy = data;
+				this.found( (data!=null) );
+            } else return _foundBy;
+        };
+		
+    }
+
+    return Card;
+}());
+
+/* source: JavaScript implementation of the Durstenfeld shuffle, https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+var Deck = (function() {
+	function Deck(inSize, isEmpty, cardInfoArray) {
+		
+		let _cardInfoArray = cardInfoArray || []; //must work without any pictures as well!
+		let _numPairs = Math.floor(inSize/2);
+		let _size = _numPairs * 2;
+		let _deck = null;
+		
+		//Pictures and info in general should only be added at creation on server side
+		//Client side generates an 'empty' deck where even pairs are not marked
+		if(!isEmpty){
+			//more picture than needed => pick a random subset for the game
+			if(_cardInfoArray.length > _numPairs){
+				shuffleArray(_cardInfoArray);
+			}
+			
+			//prepare array by selecting each pictures twice
+			let d = Array.from({length: _size}).map(
+							(e,i)=>{
+								let idx = Math.floor(i/2);
+								if(idx < _cardInfoArray.length){
+									//console.log(`Deck :: ${i} -> ${_cardInfoArray[idx].getCaption()}`);
+									return _cardInfoArray[idx];
+								} else {
+									//console.log(`Deck :: ${i} -> null}`);
+									return new CardInfo("Q"+idx, null, null, null, null, null);
+								}
+							}
+						);
+			//shuffle them
+			shuffleArray(d);
+			
+			//final deck: each item represented by a proper Card object
+			_deck = Array.from({length: _size}).map(
+						(e,i)=>{
+							let ret = new Card(i);
+							ret.info( d[i] );
+							if(ret.info().getUrl()){
+								ret.hasPic(true);
+							}
+							//console.log(`_deck :: ${i} -> ${ret.getLinearPos()}: ${ret.info() != null ? ret.info().getCaption() : false}`);
+							return ret;
+						}
+					);
+		}//isEmpty
+		else {
+			_deck = Array.from({length: _size}).map(
+						(e,i) => new Card(i)
+					);
+		}
+					
+		this.getSize = function(){return _size;};
+		this.getNumPairs = function(){return _numPairs;};
+					
+		this.getCard = function(i){
+			return _deck[i];
+		};
+		
+		//iterator over the cards in the Deck
+		this.cards = function(){
+			let i=0;
+			return {
+				[Symbol.iterator](){
+					return this;
+				},
+				next: () => ({
+					done: i >= _size,
+					value: _deck[i++]
+				})
+			};
+		};
+    }
+	
+    return Deck;
+}());
+
+var Board = (function() {
+    function Board(inRow, inCol) {
+		let _rows = inRow;
+		let _cols = inCol;
+		
+        this.getRows = function() {
+            return _rows;
+        };
+        this.getCols = function() {
+            return _cols;
+        };
+        this.getLinearPos = function(r, c) {
+            return (r-1) * _cols + c;
+        };
+        this.getRCPos = function(idx) {
+            return {
+					"row": Math.floor(idx / _cols)+1,
+					"col": idx % _cols + 1
+					};
+        };
+    }
+
+    return Board;
+}());
+var CLIENT_BOARD = null;
 
 
 //Module export

@@ -417,5 +417,5 @@ task = {elems: CONSTANTS.getMaxHumanPlayersOptions()};
 html=$.templates('#tmplSelectOptions').render(task);
 $('#setMaxHumanPlayers').html(html);
 
-console.log('Gam options rendered...');
+console.log('Game options rendered...');
 }

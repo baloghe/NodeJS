@@ -93,43 +93,73 @@ height: 50px;
 
 .card {
 -webkit-perspective: 600;
+perspective: 600;
 width: 100px;
 height: 100px;
 /*position: absolute;*/
 -moz-transition: all .3s;
 -webkit-transition: all .3s;
 transition: all .3s;
+transform-style: preserve-3d;
 }
 
 .face {
 border-radius: 10px;
 width: 100%;
 height: 100%;
-/*position: absolute;*/
+position: absolute;
 -webkit-transition-property: opacity, transform, box-shadow;
 -webkit-transition-duration: .3s;
 -webkit-backface-visibility: hidden;
+backface-visibility: hidden;
 }
 
 .front {
-background: #999 url(../pic/back1_100_100.png);
-z-index: 10;
+	background: #999 url(../pic/back1_100_100.png);
+	z-index: 10;
 }
 .back {
-background: #efefef url(https://upload.wikimedia.org/wikipedia/commons/4/41/Barend_van_Orley_-_Portrait_of_Charles_V_-_Google_Art_Project.jpg);
--webkit-transform: rotate3d(0,1,0,-180deg);
-z-index: 8;
+	background: #efefef;
+	-webkit-transform: rotate3d(0,1,0,-180deg);
+	transform: rotate3d(0,1,0,-180deg);
+	z-index: 8;
+}
+/*
+.front .card-flipped {
+	-webkit-transform: rotate3d(0,1,0,180deg);
+	z-index: 8;
+}
+.back .card-flipped {
+	-webkit-transform: rotate3d(0,1,0,0deg);
+	z-index: 10;
+}
+*/
+.card-flipped-front {
+	background: #999 url(../pic/back1_100_100.png);
+	-webkit-transform: rotate3d(0,1,0,180deg);
+	transform: rotate3d(0,1,0,180deg);
+	z-index: 8;
+}
+.card-flipped-back {
+	background: #efefef;
+	-webkit-transform: rotate3d(0,1,0,0deg);
+	transform: rotate3d(0,1,0,0deg);
+	z-index: 10;
+	font-family: 'Orbitron', arial, serif;
+	font-size: 40px;
+	font-weight: bold;
+	text-align: center;
 }
 
 .showPicDv {
-width: 100px;
-height: 100px;
+	width: 100px;
+	height: 100px;
 }
 
 .showPic {
-height: 100%;
-width: 100%;
-object-fit: contain;
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
 }
 
 td.chosen{

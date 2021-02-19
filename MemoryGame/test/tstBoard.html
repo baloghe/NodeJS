@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+	<meta charset=utf-8>
+	<title>test</title>
+	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,bold&subset=latin' rel='stylesheet' type='text/css' />
+	<link href='http://fonts.googleapis.com/css?family=Orbitron:400,700' rel='stylesheet' type='text/css' />
+	<link rel="stylesheet" href="../public/css/memorygame.css" />
+
+	<!-- include third party scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="../public/js/jquery.popupoverlay.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.9/jsrender.min.js"
+			integrity="sha512-/jrvVHS7QH4kmMcYa/tfwrRDknb4pbpWc+kxUTEwbxO3yeOEW+Hn/Y4mwWrBcKq4WYqd4JO0tMH2NF7MsCgDeQ=="
+			crossorigin="anonymous">
+	</script>
+
+	<script src="../public/js/Game.js"></script>
+	<script src="../public/js/User.js"></script>
+	<!-- <script src="/socket.io/socket.io.js"></script> 
+	<script src="../public/js/socket.js"></script>
+	<script src="../public/js/client.js"></script>-->
+	
+	
+	<script src="./tstBoard.js"></script>
+</head>
+<body>
+
+<div id="dvCards"></div>
+
+<button id="btnShuffle" type="button" value="Shuffle"><span class="btn">Shuffle</span></button>
+<button id="btnInvert" type="button" value="Invert"><span class="btn">Invert</span></button>
+
+</body>
+
+<!-- Card template
+     contextual params (~row, ~col, ~cols ) provided by caller
+-->
+<script id="tmplCard" type="text/x-jsrender">
+	<div id="dvCard{{:(~row * (~cols) + ~col )}}" class="card">
+		<div id="dvCardFront{{:(~row * (~cols) + ~col )}}" class="face front"></div>
+		<div id="dvCardBack{{:(~row * (~cols) + ~col )}}" class="face back showPicDv">
+		</div>
+	</div>
+</script>
+
+<!-- Board template -->
+<script id="tmplBoard" type="text/x-jsrender">
+	{{if rows
+		~rows=rows
+		~cols=cols
+	}}
+		<table>
+			{{for start=0 end=~rows itemVar="~row"}}
+				<tr>
+				{{for start=0 end=~cols itemVar="~col"}}
+					<td>
+						{{include tmpl="#tmplCard" /}}
+					</td>
+				{{/for}}
+				</tr>
+			{{/for}}
+		</table>
+	{{/if}}
+</script>
+</html>
