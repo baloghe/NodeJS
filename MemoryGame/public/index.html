@@ -315,8 +315,8 @@
 -->
 <script id="tmplCard" type="text/x-jsrender">
 	<div id="dvCard{{:(~row * (~cols) + ~col + 1)}}" class="card">
-		<div class="face front"></div>
-		<div id="dvCardBack{{:(~row * (~cols) + ~col + 1)}}" class="face back"></div>
+		<div id="dvCardFront{{:(~row * (~cols) + ~col )}}" class="face front"></div>
+		<div id="dvCardBack{{:(~row * (~cols) + ~col + 1)}}" class="face back showPicDv"></div>
 	</div>
 </script>
 

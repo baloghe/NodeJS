@@ -1,10 +1,16 @@
-var path = require('path');
-var express = require('express');
-var fs = require('fs');
-var User = require('./public/js/User');
-var GameImport = require('./public/js/Game');
-var Game = GameImport.Game;
-var Constants = GameImport.Constants;
+const path = require('path');
+const express = require('express');
+const fs = require('fs');
+const User = require('./public/js/User');
+const GameImport = require('./public/js/Game');
+const Game = GameImport.Game;
+const Constants = GameImport.Constants;
+/*
+var CardInfo = GameImport.CardInfo;
+var Card = GameImport.Card;
+var Deck = GameImport.Deck;
+*/
+const CARDS_INFO = JSON.parse(fs.readFile('./public/data/student.json'));
 
 const approot='memorygame';
 const appport=4000;
@@ -14,6 +20,8 @@ app.use(express.static(__dirname + '/public'));
 var httpd = require('http').Server(app);
 
 var io = require('socket.io')(httpd);
+
+
 
 /* serve homepage */
 function serveHome(req, res){
@@ -29,7 +37,7 @@ httpd.listen( appport );
 
 /* pseudo-random room ID generator */
 function getRandomString(inLen){
-	var ret = '';
+	let ret = '';
 	while(ret.length < inLen){
 		ret = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, inLen);
 	}
@@ -39,22 +47,22 @@ function getRandomString(inLen){
 /*
 GameID -> {gameObj: Game(.,.), users: Set(User.strJSON)}
 */
-var gameRegistry = {};
+const gameRegistry = {};
 /*
 Constants
 */
-var CONSTANTS = new Constants();
+const CONSTANTS = new Constants();
 
 function enumUsers(gid){
 	const clients = io.sockets.adapter.rooms.get(gid);
 	const numClients = clients ? clients.size : 0;
-	var c=[];
+	let c=[];
 	for (const clientId of clients ) {
 		//this is the socket of each client in the room.
 		const clientSocket = io.sockets.sockets.get(clientId);
 		c.push(clientSocket);
 	}
-	var roster = c.map((s) => s.user.name).join(', ');
+	let roster = c.map((s) => s.user.name).join(', ');
 	return '['+numClients+'] ' + roster;
 }
 
@@ -66,7 +74,7 @@ io.sockets.on('connection', function (socket) {
 	/* user sent his name and avatar */
 	socket.on('login', dataJSON => {
 		//create new user when needed
-		var data=JSON.parse(dataJSON);
+		let data=JSON.parse(dataJSON);
 		if(!socket.user){
 			socket.user = new User(data.username, data.avatar);
 			console.log('new user created: ' + socket.user.print() + ', login reason: ' + data.loginMode + (data.loginGameId != null ? ', gameID=' + data.loginGameId : ''));
@@ -81,16 +89,16 @@ io.sockets.on('connection', function (socket) {
 	socket.on('gameSettingsFinalized', dataJSON => {
 		console.log(`gameSettingsFinalized (received) :: ${dataJSON}`);
 		
-		var msg = JSON.parse( dataJSON );
-		var gid = msg["gameId"];
+		let msg = JSON.parse( dataJSON );
+		let gid = msg["gameId"];
 		
 		//check if initiator really initiated the game
-		var init = gameRegistry[gid].gameObj.getInitiatedBy();
+		let init = gameRegistry[gid].gameObj.getInitiatedBy();
 		if( init.strJSON == socket.user.strJSON ){
 		//if so, set game constants to this game
 			console.log(`  init.strJSON==socket.user.strJSON`);
-			var gc = msg["gameConstants"];
-			gameRegistry[gid].gameObj.constants = gc;
+			let gc = msg["gameConstants"];
+			gameRegistry[gid].gameObj.setConstants( gc );
 			//inform others (and self) and start countdown
 			console.log(`user list in room [${gid}]: ${enumUsers(gid)}`);
 			socket.broadcast.to(gid).emit('gameSettingsFinalized', JSON.stringify( gc ));
@@ -112,10 +120,10 @@ io.sockets.on('connection', function (socket) {
 	socket.on('leaveGame', dataJSON => {
 		console.log(`leaveGame (received) :: ${dataJSON}`);
 		
-		var msg = JSON.parse( dataJSON );
-		var gid = msg["gameId"];
+		let msg = JSON.parse( dataJSON );
+		let gid = msg["gameId"];
 		
-		var usr = socket.user.strJSON;
+		let usr = socket.user.strJSON;
 		socket.broadcast.to(gid).emit('userDisconnected', usr); //much enough for other users, even though user has not disconnected
 		gameRegistry[gid].users.delete(usr);
 		
@@ -127,18 +135,18 @@ io.sockets.on('connection', function (socket) {
 		//everyone kicked out of room + inform and handle client side
 		console.log(`cancelGame :: TBD!!!!! initiator cancels game ${dataJSON}`);
 		
-		var msg = JSON.parse( dataJSON );
-		var gid = msg["gameId"];
+		let msg = JSON.parse( dataJSON );
+		let gid = msg["gameId"];
 		
-		var usr = socket.user.strJSON;
+		let usr = socket.user.strJSON;
 	});
 
 	/* user disconnected */
 	socket.on('disconnect', function() {
 		console.log(`disconnect by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'} on socket ${socket.id}`);
 		//remove user from rooms (Games)
-		var usr = socket.user.strJSON;
-		for (var gid in gameRegistry) {
+		let usr = socket.user.strJSON;
+		for (let gid in gameRegistry) {
 			if(gameRegistry[gid].users.has(usr)){
 				socket.broadcast.to(gid).emit('userDisconnected', usr);
 				gameRegistry[gid].users.delete(usr);
@@ -151,7 +159,7 @@ io.sockets.on('connection', function (socket) {
 	function initializeCountDown(socket, gid, numSec) {
 		gameRegistry[gid].gameObj.secRemainingToStart = numSec;
 		const ivl = setInterval(() => {
-			var s = JSON.stringify({sec: numSec});
+			let s = JSON.stringify({sec: numSec});
 			socket.broadcast.to(gid).emit('remainingSecToStart', s );
 			socket.emit('remainingSecToStart', s );
 			numSec--;
@@ -166,12 +174,12 @@ io.sockets.on('connection', function (socket) {
 
 	function processLogin(socket, loginData){
 		//check login conditions
-		var chkResult = checkLogin(loginData.loginMode, loginData.loginGameId, socket.user);
+		let chkResult = checkLogin(loginData.loginMode, loginData.loginGameId, socket.user);
 		if( chkResult['response']==='gameCreated' || chkResult['response']==='joinedGame' ){
 			socket.emit(chkResult['response'], JSON.stringify({gameID: chkResult['gameID'], gameInitiator: chkResult['gameInitiator']}));
 			
-			var gid = chkResult['gameID'];
-			var gmr = gameRegistry[gid];
+			let gid = chkResult['gameID'];
+			let gmr = gameRegistry[gid];
 			gmr.users.add(socket.user.strJSON);
 			//console.log(`  ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
 			
@@ -183,7 +191,7 @@ io.sockets.on('connection', function (socket) {
 			}
 		} else {
 			//inform client something went wrong
-			var msg = JSON.stringify({response: chkResult['response']});
+			let msg = JSON.stringify({response: chkResult['response']});
 			//console.log(`loginRejected ${msg}`);
 			socket.emit('loginRejected', msg );
 		}
@@ -201,7 +209,7 @@ io.sockets.on('connection', function (socket) {
 		//console.log(`checkLogin: loginMode=${loginMode}, loginGameId: ${loginGameId}, inUser: ${inUser.name}`);
 		if( loginMode==='START_NEW_GAME' ){
 			//create new game ID
-			var gid = getRandomString(6);
+			let gid = getRandomString(6);
 			//console.log(`    gid=${gid}`);
 			while( gameRegistry[gid] != undefined ){
 				//gid exists => create new one
@@ -223,12 +231,12 @@ io.sockets.on('connection', function (socket) {
 		} else if( loginMode==='JOIN_GAME' ) {
 			//console.log(`JOIN_GAME inUser=${inUser.name}, gameID: ${loginGameId}`);
 			//check game ID existence & state
-			var gid=loginGameId;
+			let gid=loginGameId;
 			if(gameRegistry[gid] != undefined){
-				var gs = gameRegistry[gid].gameObj.state;
+				let gs = gameRegistry[gid].gameObj.state;
 				if(gs=='CREATED'){
-					var gid = gameRegistry[gid].gameObj.getGameID();
-					var init = gameRegistry[gid].gameObj.getInitiatedBy();
+					let gid = gameRegistry[gid].gameObj.getGameID();
+					let init = gameRegistry[gid].gameObj.getInitiatedBy();
 					
 					//add socket to room(=game)
 					socket.join(gid);
@@ -245,11 +253,19 @@ io.sockets.on('connection', function (socket) {
 	
 	function processSetupGame(inGameId){
 		//TBD: get the game ready to be launched...
+		//At this point the Game constants are fixed, the only thing we don't know is the exact set of users that would participate
+		//Deck could be selected and shuffled
+		let game = gameRegistry[inGameId].gameObj;
+		game.serverPreInit( CARDS_INFO ); 
 	}
 	
 	function processStartGame(inGameId){
 		//TBD: broadcast game starts... whatever
 		console.log(`START GAME for id=${inGameId}`);
+		
+		//TBD: randomize and fix user list
+		
+		
 	}
 
 	/* confirm connection */

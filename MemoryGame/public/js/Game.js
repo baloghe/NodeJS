@@ -1,11 +1,22 @@
 var Constants = (function(){
 
 	function Constants(){
+		
+		let _layout = {
+				"8pairs"	: {"r": 4, "c": 4},
+				"12pairs"	: {"r": 6, "c": 4},
+				"20pairs"	: {"r": 8, "c": 5}
+			};
+		let _deckSize = {
+				"8pairs"	: 16,
+				"12pairs"	: 24,
+				"20pairs"	: 40
+			};
 
 		this.getNumberOfCardsOptions = function (){
 			return [ {"value":"8pairs","caption":"8 pairs"}
-					,{"value":"16pairs","caption":"16 pairs"}
-					,{"value":"32pairs","caption":"32 pairs"}
+					,{"value":"12pairs","caption":"12 pairs"}
+					,{"value":"20pairs","caption":"20 pairs"}
 				   ];
 		}
 		
@@ -25,6 +36,14 @@ var Constants = (function(){
 		
 		this.getWaitSecBeforeStart = function (){return 10;}
 		
+		this.getLayout = function(pairs){
+			return _layout[pairs];
+		}
+		
+		this.getDeckSize = function(pairs){
+			return _deckSize[pairs];
+		}
+		
 	}
 
 	return Constants;
@@ -41,6 +60,8 @@ var Game = (function() {
     function Game(inGameID, inInitiatedBy) {
 		let _gameID = inGameID;
 		let _initiatedBy = inInitiatedBy;
+		let _gameConstants = null;
+		let _deck = null;
 		
         this.getGameID = function() {
             return _gameID;
@@ -48,6 +69,39 @@ var Game = (function() {
         this.getInitiatedBy = function() {
             return _initiatedBy;
         };
+		
+		this.setConstants = function(gc){
+			//gc received looks like this:
+			//	numCards:			
+			//	limitThinkingTime:	
+			//	computerPlayer:		
+			//	maxHumanPlayers:	
+			_gameConstants = gc;
+		}
+		
+		this.serverPreInit = function(cardInfoArr){
+			//create deck by selecting pictures and form pairs of cards
+			//cardInfoArr :: Array of {cardID, url, artist, creationDate, caption, otherInfo}
+			_deck = new Deck(
+					 CONSTANTS.getDeckSize( _gameConstants["numCards"] )
+					,false
+					,cardInfoArr.map(
+							i => {return new CardInfo( i.cardID, i.url, i.artist, i.creationDate, i.caption, i.otherInfo )}
+						)
+				);
+		}
+		
+		this.clientPreInit = function(){
+			//create deck without any knowledge on card content
+			_deck = new Deck(
+					 CONSTANTS.getDeckSize( _gameConstants["numCards"] )
+					,true
+				);
+			//generate Board
+			let bDim = CONSTANTS.getLayout( _gameConstants["numCards"] );
+			CLIENT_BOARD = new Board(bDim.r, bDim.c);
+		}
+		
     }
 
     return Game;
@@ -245,7 +299,10 @@ var CLIENT_BOARD = null;
 try {
 	module.exports = {
 			Game: 		Game,
-			Constants:	Constants
+			Constants:	Constants,
+			CardInfo:	CardInfo,
+			Card:		Card,
+			Deck:		Deck
 		};
 } catch (error) {
 	//do nothing, locally this makes no sense
