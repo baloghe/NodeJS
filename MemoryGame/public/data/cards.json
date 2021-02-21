@@ -17,7 +17,7 @@
 },
 {
 	 "cardID":		"P3"
-	,"url":			"https://en.wikipedia.org/wiki/Henry_VIII#/media/File:Hans_Holbein,_the_Younger,_Around_1497-1543_-_Portrait_of_Henry_VIII_of_England_-_Google_Art_Project.jpg"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/c/c7/Hans_Holbein%2C_the_Younger%2C_Around_1497-1543_-_Portrait_of_Henry_VIII_of_England_-_Google_Art_Project.jpg"
 	,"artist":		"Hans Holbein, the Younger"
 	,"creationDate":"around 1537"
 	,"caption":		"Henry VIII"
@@ -25,7 +25,7 @@
 },
 {
 	 "cardID":		"P4"
-	,"url":			"https://en.wikipedia.org/wiki/Frederick_I,_Holy_Roman_Emperor#/media/File:Barbarossa.jpg"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/5/53/Barbarossa.jpg"
 	,"artist":		"unknown"
 	,"creationDate":"around 1188"
 	,"caption":		"Frederick Barbarossa"
@@ -33,7 +33,7 @@
 },
 {
 	 "cardID":		"P5"
-	,"url":			"https://fr.wikipedia.org/wiki/Charles_VII_(roi_de_France)#/media/Fichier:KarlVII.jpg"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/7/71/KarlVII.jpg"
 	,"artist":		"Jean Fouquet"
 	,"creationDate":"around 1445-50"
 	,"caption":		"Charles VII"
@@ -41,10 +41,58 @@
 },
 {
 	 "cardID":		"P6"
-	,"url":			"https://de.wikipedia.org/wiki/Maximilian_I._(HRR)#/media/Datei:Albrecht_D%C3%BCrer_-_Portrait_of_Maximilian_I_-_Google_Art_Project.jpg"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/3/35/Albrecht_D%C3%BCrer_-_Portrait_of_Maximilian_I_-_Google_Art_Project.jpg"
 	,"artist":		"Albrecht Dürer"
 	,"creationDate":"1519"
 	,"caption":		"Maximilian I"
 	,"otherInfo":	"Maximilian I. (1459-1519) Holy Roman Emperor, Habsburg"
+},
+{
+	 "cardID":		"P7"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/e/e9/EmperorSuleiman.jpg"
+	,"artist":		"Tiziano"
+	,"creationDate":"around 1530"
+	,"caption":		"Suleiman I"
+	,"otherInfo":	"Suleiman I. (1494-1566) Sultan of the Ottoman Empire, Ottoman"
+},
+{
+	 "cardID":		"P8"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/a/af/Pisanello_024.jpg"
+	,"artist":		"Pisanello"
+	,"creationDate":"1433"
+	,"caption":		"Sigismund"
+	,"otherInfo":	"Sigismund (1369–1437) Holy Roman Emperor, Ottoman"
+},
+{
+	 "cardID":		"P9"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/0/09/Richard_III_earliest_surviving_portrait.jpg"
+	,"artist":		"unknown"
+	,"creationDate":"around 1520"
+	,"caption":		"Richard III"
+	,"otherInfo":	"Richard III. (1452–1485) King of England, York"
+},
+{
+	 "cardID":		"P10"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/f/fe/Anthonis_Mor_001.jpg"
+	,"artist":		"Antonis Mor"
+	,"creationDate":"1554"
+	,"caption":		"Mary I"
+	,"otherInfo":	"Mary I. (1516–1558) King of England, Tudor"
+},
+{
+	 "cardID":		"P11"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/a/af/Darnley_stage_3.jpg"
+	,"artist":		"unknown"
+	,"creationDate":"1554"
+	,"caption":		"Elizabeth I"
+	,"otherInfo":	"Elizabeth I. (1533–1603) King of England, Tudor<br/>Called the 'Darnley Portrait' after a previous owner"
+},
+{
+	 "cardID":		"P12"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/7/74/Henri-Pourbus.jpg"
+	,"artist":		"Frans Pourbus the Younger"
+	,"creationDate":"1610"
+	,"caption":		"Henry IV"
+	,"otherInfo":	"Henry IV. (1553–1610) King of France, Bourbon"
 }
 ]

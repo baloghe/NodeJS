@@ -261,22 +261,16 @@
 						<table>
 							<tr>
 								<td>
-						<div id="dvPic1" class="showPicDv"><img class="showPic" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Barend_van_Orley_-_Portrait_of_Charles_V_-_Google_Art_Project.jpg"/></div>
-								</td>
-								<td>
-						<div id="dvInfo1"><p><b>Barend van Orley: Portrait of Charles V, 1519</b><br>Charles V. (1500-1558) holy roman emperor</p></div>
+									<div id="dvPic1"></div>
 								</td>
 							</tr>
 							<tr>
 								<td>
-						<div id="dvPic2" class="showPicDv"><img class="showPic" src="https://upload.wikimedia.org/wikipedia/commons/0/02/Joos_van_Cleve_-_Portrait_of_Francis_I%2C_King_of_France_%28ca._1532-1533%29_-_Google_Art_Project.jpg"/>
-						</div>
-								</td>
-								<td>
-						<div id="dvInfo2"><p><b>Joos van Cleve: FranĂ§ois I, around 1532-33</b><br>FranĂ§ois I. (1494-1547) king of France</p></div>
+									<div id="dvPic2"></div>
 								</td>
 							</tr>
 						</table>
+							
 					</td>
 				</tr>
 				<tr>
@@ -402,7 +396,18 @@
 
 <!-- Card Info template -->
 <script id="tmplCardInfo" type="text/x-jsrender">
-	<!-- TBD!!! -->
+	<table>
+		<tr>
+			<td>
+				<div class="showPicDv">
+					<img class="showPic" src="{{:url}}" alt="{{:cardID}}" />
+				</div>
+			</td>
+			<td>
+				<div><p><span class="picArtist">{{:artist}}:</span> <span class="picCaption">{{:caption}},</span> <span class="picCreationDate">{{:creationDate}}</span><br/><span class="picOtherInfo">{{:otherInfo}}</span></p></div>
+			</td>
+		</tr>
+	</table>
 </script>
 
 </html>

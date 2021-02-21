@@ -62,6 +62,7 @@ var Game = (function() {
 		let _initiatedBy = inInitiatedBy;
 		let _waitingList = new Set();
 		let _gameConstants = null;
+		let _gameConstantsSet = false;
 		let _deck = null;
 		let _users = null; //Array of {human: true/false, data: JSON string, points: int}
 		
@@ -79,7 +80,10 @@ var Game = (function() {
 			//	computerPlayer:		
 			//	maxHumanPlayers:	
 			_gameConstants = gc;
+			_gameConstantsSet = true;
 		};
+		this.isConstantsSet = function(){return _gameConstantsSet;};
+		this.getGameConstantsJSON = function(){return _gameConstants;};
 		
 		this.addUserToWaitingList = function(u){
 			_waitingList.add(u);

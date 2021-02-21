@@ -162,6 +162,24 @@ backface-visibility: hidden;
 	object-fit: contain;
 }
 
+span.picArtist{
+	font-weight: normal;
+	font-size: 12px;
+}
+span.picCaption{
+	font-weight: bold;
+	font-size: 12px;
+}
+span.picCreationDate{
+	font-weight: normal;
+	font-style: italic;
+	font-size: 12px;	
+}
+span.picOtherInfo{
+	font-weight: normal;
+	font-size: 12px;	
+}
+
 td.chosen{
 background-color: yellow;
 box-shadow: 0 0 5px 1px orange;

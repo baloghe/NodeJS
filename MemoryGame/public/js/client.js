@@ -241,7 +241,8 @@ function gameSettingsFinalized(inGameConstants){
 	$('#chkComputerPlayer').prop('checked', CLIENT_GAME.computerPlayerAllowed());
 	$('#setMaxHumanPlayers').val(CLIENT_GAME.getMaxHumanPlayers());
 	
-	updateUI();	
+	updateUI();
+	remainingSecToStart(CONSTANTS.getWaitSecBeforeStart());
 }
 
 function processCreateGame(gameData, asInitiator){
@@ -430,6 +431,28 @@ for(var elem of task.elems){
 	//console.log(html);
 }
 console.log('Users under Board rendered...');
+
+//Picture info next to the board
+task = {
+	 "cardID":		"P1"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/4/41/Barend_van_Orley_-_Portrait_of_Charles_V_-_Google_Art_Project.jpg"
+	,"artist":		"Barend van Orley"
+	,"creationDate":"1519"
+	,"caption":		"Portrait of Charles V"
+	,"otherInfo":	"Charles V. (1500-1558) Holy Roman Emperor, Habsburg"
+};
+html=$.templates('#tmplCardInfo').render(task);
+$('#dvPic1').html(html);
+task = {
+	 "cardID":		"P11"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/a/af/Darnley_stage_3.jpg"
+	,"artist":		"unknown"
+	,"creationDate":"1554"
+	,"caption":		"Elizabeth I"
+	,"otherInfo":	"Elizabeth I. (1533–1603) King of England, Tudor<br/>Called the 'Darnley Portrait' after a previous owner"
+};
+html=$.templates('#tmplCardInfo').render(task);
+$('#dvPic2').html(html);
 
 //Results
 task = {elems: [

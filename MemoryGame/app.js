@@ -111,7 +111,7 @@ io.sockets.on('connection', function (socket) {
 			socket.emit('gameSettingsFinalized', JSON.stringify( gc ));
 			console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
 			
-			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart());
+			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart()-1);//in fact the first run will occur a second later
 			console.log(`  interval set for ${gameRegistry[gid].gameObj.secRemainingToStart} secs`);
 		
 			//set up game on server side
@@ -206,6 +206,11 @@ io.sockets.on('connection', function (socket) {
 				socket.broadcast.to(gid).emit('userLoggedIn', socket.user.strJSON);
 				socket.emit('usersLoggedInBefore', JSON.stringify(Array.from(gmr.users)));
 				//console.log(`    ${chkResult['response']} => users[${gid}]=${usersToString(gid)}`);
+				
+				//if already in countdown: send game constants as well
+				if(gmr.gameObj.isConstantsSet()){
+					socket.emit('gameSettingsFinalized', JSON.stringify( gmr.gameObj.getGameConstantsJSON() ));
+				}
 			}
 		} else {
 			//inform client something went wrong
@@ -285,8 +290,8 @@ io.sockets.on('connection', function (socket) {
 		console.log(`processStartGame :: inGameId=${inGameId}, max players: ${game.getMaxHumanPlayers()}, available players: ${users.size}`);
 		if(users.size <= 1){
 			//TBD: game initiator is left alone => equivalent to cancel game against his will
-			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS', msg);
-			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS', msg);
+			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS');
+			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			processCancelGame(inGameId);
 		} else if(users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed()){
 			//TBD: add computer to the users
