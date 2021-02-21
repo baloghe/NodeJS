@@ -94,7 +94,7 @@ function uiRefreshUsersList(){
 		task = {tableHeaderClass: "tableHeader",
 				listCaption: "Users",
 				nameClass: "userName",
-				elems: Array.from(CLIENT_GAME.otherUsers).map((x)=>{var e = JSON.parse(x); return {avatarSrc: e.avatar, name: e.name};})
+				elems: Array.from(CLIENT_GAME.getWaitingList()).map((x)=>{var e = JSON.parse(x); return {avatarSrc: e.avatar, name: e.name};})
 				};
 		html=$.templates('#tmplUserList').render(task);
 		$('#dvJoinedAlready').html(html);
@@ -105,13 +105,10 @@ function uiRefreshUsersList(){
 //OR THIS user joined a game => refresh users list with already joined users at once
 function userLoggedIn(inUsers){
 	//logically
-	if(CLIENT_GAME.otherUsers == null){
-		CLIENT_GAME.otherUsers = new Set();
-	}
 	if(Array.isArray(inUsers)){
-		inUsers.forEach(e => CLIENT_GAME.otherUsers.add(JSON.stringify(e)));
+		inUsers.forEach(e => CLIENT_GAME.addUserToWaitingList(JSON.stringify(e)));
 	} else {
-		CLIENT_GAME.otherUsers.add(JSON.stringify(inUsers));
+		CLIENT_GAME.addUserToWaitingList(JSON.stringify(inUsers));
 	}
 
 	//on UI
@@ -235,14 +232,14 @@ function gameSettingsFinalized(inGameConstants){
 	//TBD: game settings have been finalized => disable them even for the initiator!
 	console.log(`client.gameSettingsFinalized :: inGameConstants=${inGameConstants}`);
 	//logically
-	CLIENT_GAME.constants = inGameConstants;
+	CLIENT_GAME.setConstants(inGameConstants);
 	Application.state = 'WAIT_FOR_START';
 	
 	//on UI
-	$('#setNumCards').val(CLIENT_GAME.constants.numCards);
-	$('#setLimitThinkingTime').val(CLIENT_GAME.constants.limitThinkingTime);
-	$('#chkComputerPlayer').prop('checked', CLIENT_GAME.constants.computerPlayer);
-	$('#setMaxHumanPlayers').val(CLIENT_GAME.constants.maxHumanPlayers);
+	$('#setNumCards').val(CLIENT_GAME.getNumCards());
+	$('#setLimitThinkingTime').val(CLIENT_GAME.getLimitThinkingTime());
+	$('#chkComputerPlayer').prop('checked', CLIENT_GAME.computerPlayerAllowed());
+	$('#setMaxHumanPlayers').val(CLIENT_GAME.getMaxHumanPlayers());
 	
 	updateUI();	
 }
@@ -312,10 +309,54 @@ function loginRejected(response){
 function userDisconnected(user){
 	console.log(`userDisconnected :: user=${user}`);
 	//logically
-	CLIENT_GAME.otherUsers.delete(JSON.stringify(user));
+	CLIENT_GAME.removeUserFromWaitingList(JSON.stringify(user));
 
 	//on UI
 	uiRefreshUsersList();
+}
+
+function startGame(users){
+	CLIENT_GAME.clientPreInit();
+	CLIENT_GAME.setUsers(users, false);//false==no reshuffle on users array
+	
+	//TBD: a lot of other things before anything can start on client side
+	resetBoard();
+	resetUsersUnderBoard();
+	
+	Application.state = 'IN_GAME';
+	updateUI();
+	console.log('Game started...');
+}
+
+function resetBoard(){
+	//set board
+	let task = {rows: CLIENT_BOARD.getRows(), cols: CLIENT_BOARD.getCols()};
+	let html=$.templates('#tmplBoard').render(task);
+	$('#dvCards').html(html);
+	//console.log(html);
+	console.log('Board rendered...');
+}
+function resetUsersUnderBoard(){
+	let i=1;
+	//console.log(`resetUsersUnderBoard :: CLIENT_GAME.users ${typeof CLIENT_GAME.users}`);
+	for(let e of CLIENT_GAME.users()){
+		let u = JSON.parse(e.data);
+		let task = {
+				"id"			: i++,
+				"nameClass"		: "boardUserName",
+				"pointsClass"	: "boardUserPoints",
+				"pointsIdPfx"	: "ptsBoard",
+				"avatarSrc"		: u.avatar,
+				"name"			: u.name,
+				"points"		: e.points
+			};
+		let html=$.templates('#tmplUserV').render(task);
+		$('#dvUser'+task.id).html(html);
+	}
+	console.log('Users under board rendered...');
+}
+function resetCardInfoDivs(){
+	//TBD!!!!!!!  generation with tmplCardInfo -> TBD as well
 }
 
 

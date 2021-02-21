@@ -5,7 +5,7 @@
 	,"artist":		"Barend van Orley"
 	,"creationDate":"1519"
 	,"caption":		"Portrait of Charles V"
-	,"otherInfo":	"Charles V. (1500-1558) holy roman emperor"
+	,"otherInfo":	"Charles V. (1500-1558) Holy Roman Emperor, Habsburg"
 },
 {
 	 "cardID":		"P2"
@@ -13,6 +13,38 @@
 	,"artist":		"Joos van Cleve"
 	,"creationDate":"around 1532-33"
 	,"caption":		"Fran&#231;ois I"
-	,"otherInfo":	"Fran&#231;ois I. (1494-1547) king of France"
+	,"otherInfo":	"Fran&#231;ois I. (1494-1547) king of France, Valois"
+},
+{
+	 "cardID":		"P3"
+	,"url":			"https://en.wikipedia.org/wiki/Henry_VIII#/media/File:Hans_Holbein,_the_Younger,_Around_1497-1543_-_Portrait_of_Henry_VIII_of_England_-_Google_Art_Project.jpg"
+	,"artist":		"Hans Holbein, the Younger"
+	,"creationDate":"around 1537"
+	,"caption":		"Henry VIII"
+	,"otherInfo":	"Henry VIII. (1491-1547) king of England, Tudor"
+},
+{
+	 "cardID":		"P4"
+	,"url":			"https://en.wikipedia.org/wiki/Frederick_I,_Holy_Roman_Emperor#/media/File:Barbarossa.jpg"
+	,"artist":		"unknown"
+	,"creationDate":"around 1188"
+	,"caption":		"Frederick Barbarossa"
+	,"otherInfo":	"Frederick I. (Barbarossa) (1122-1190) Holy Roman Emperor, Hohenstaufer"
+},
+{
+	 "cardID":		"P5"
+	,"url":			"https://fr.wikipedia.org/wiki/Charles_VII_(roi_de_France)#/media/Fichier:KarlVII.jpg"
+	,"artist":		"Jean Fouquet"
+	,"creationDate":"around 1445-50"
+	,"caption":		"Charles VII"
+	,"otherInfo":	"Charles VII. (1403-1461) king of France, Valois"
+},
+{
+	 "cardID":		"P6"
+	,"url":			"https://de.wikipedia.org/wiki/Maximilian_I._(HRR)#/media/Datei:Albrecht_D%C3%BCrer_-_Portrait_of_Maximilian_I_-_Google_Art_Project.jpg"
+	,"artist":		"Albrecht Dürer"
+	,"creationDate":"1519"
+	,"caption":		"Maximilian I"
+	,"otherInfo":	"Maximilian I. (1459-1519) Holy Roman Emperor, Habsburg"
 }
 ]

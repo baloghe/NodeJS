@@ -67,6 +67,12 @@ var SWP = (function(){
 			var user = JSON.parse(data);
 			userDisconnected(user);
 		});
+
+		SOCKET.on('startGame', function(data) {
+			console.log(`startGame :: data=${data}`);
+			var users = JSON.parse(data);
+			startGame(users);
+		});
 		
 		
 		

@@ -10,7 +10,13 @@ var CardInfo = GameImport.CardInfo;
 var Card = GameImport.Card;
 var Deck = GameImport.Deck;
 */
-const CARDS_INFO = JSON.parse(fs.readFile('./public/data/student.json'));
+
+//let f = fs.readFileSync('./public/data/cards.json',function (err, data) {
+//							console.log(`CARDS_INFO created`);
+//						});
+const CARDS_INFO = JSON.parse(fs.readFileSync('./public/data/cards.json',function (err, data) {
+							console.log(`CARDS_INFO created`);
+						}));
 
 const approot='memorygame';
 const appport=4000;
@@ -108,7 +114,7 @@ io.sockets.on('connection', function (socket) {
 			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart());
 			console.log(`  interval set for ${gameRegistry[gid].gameObj.secRemainingToStart} secs`);
 		
-			//set up game on server side (??I don't know if this is really needed... time will tell)
+			//set up game on server side
 			processSetupGame(gid);
 		} else {
 		//otherwise: inform socket something went wrong...
@@ -131,26 +137,38 @@ io.sockets.on('connection', function (socket) {
 	});
 	
 	socket.on('cancelGame', dataJSON => {
-		//TBD!!!!!!!!!!
 		//everyone kicked out of room + inform and handle client side
-		console.log(`cancelGame :: TBD!!!!! initiator cancels game ${dataJSON}`);
+		console.log(`cancelGame :: initiator cancels game ${dataJSON}`);
 		
 		let msg = JSON.parse( dataJSON );
 		let gid = msg["gameId"];
 		
-		let usr = socket.user.strJSON;
+		socket.broadcast.to(gid).emit('ERR_INITIATOR_CANCEL', msg);
+		socket.emit('ERR_INITIATOR_CANCEL', msg);
+		
+		processCancelGame(gid);
 	});
+	
+	function processCancelGame(gid){
+		//TBD!!!!!!!!!!
+		//everyone kicked out of room + inform and handle client side
+		console.log(`processCancelGame :: TBD!!!!!`);
+	}
 
 	/* user disconnected */
 	socket.on('disconnect', function() {
 		console.log(`disconnect by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'} on socket ${socket.id}`);
-		//remove user from rooms (Games)
-		let usr = socket.user.strJSON;
-		for (let gid in gameRegistry) {
-			if(gameRegistry[gid].users.has(usr)){
-				socket.broadcast.to(gid).emit('userDisconnected', usr);
-				gameRegistry[gid].users.delete(usr);
+		//remove user from rooms (Games) if there is any...
+		try{
+			let usr = socket.user.strJSON;
+			for (let gid in gameRegistry) {
+				if(gameRegistry[gid].users.has(usr)){
+					socket.broadcast.to(gid).emit('userDisconnected', usr);
+					gameRegistry[gid].users.delete(usr);
+				}
 			}
+		} catch (error) {
+			//no user on socket => nothing to do...
 		}
 		//disable socket
 		socket.removeAllListeners();
@@ -235,8 +253,9 @@ io.sockets.on('connection', function (socket) {
 			if(gameRegistry[gid] != undefined){
 				let gs = gameRegistry[gid].gameObj.state;
 				if(gs=='CREATED'){
-					let gid = gameRegistry[gid].gameObj.getGameID();
 					let init = gameRegistry[gid].gameObj.getInitiatedBy();
+					
+					//TBD check: reject login if too many users are in already
 					
 					//add socket to room(=game)
 					socket.join(gid);
@@ -256,16 +275,45 @@ io.sockets.on('connection', function (socket) {
 		//At this point the Game constants are fixed, the only thing we don't know is the exact set of users that would participate
 		//Deck could be selected and shuffled
 		let game = gameRegistry[inGameId].gameObj;
-		game.serverPreInit( CARDS_INFO ); 
+		game.serverPreInit( CARDS_INFO );
 	}
 	
-	function processStartGame(inGameId){
+	function processStartGame(inGameId){		
+		//TBD: fix user list and pass it to Game + users
+		let game = gameRegistry[inGameId].gameObj;
+		let users = gameRegistry[inGameId].users;
+		console.log(`processStartGame :: inGameId=${inGameId}, max players: ${game.getMaxHumanPlayers()}, available players: ${users.size}`);
+		if(users.size <= 1){
+			//TBD: game initiator is left alone => equivalent to cancel game against his will
+			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS', msg);
+			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS', msg);
+			processCancelGame(inGameId);
+		} else if(users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed()){
+			//TBD: add computer to the users
+		} else {
+			//TBD: crop users array at getMaxHumanPlayers()
+			//console.log(`  Array.from(users).length=${Array.from(users).length}`);
+			let usr = Array.from(users)
+					.map(u => {return {"human": true, "data": u};})
+					.reduce((a,u,i) => {
+							if(i<game.getMaxHumanPlayers()){
+								a.push(u);
+								//console.log(`  user added: ${u}`);
+							}
+							return a;
+						}
+						,[]
+					);
+			//console.log(`  usr: ${typeof usr}, length: ${usr.length}`);
+			game.setUsers(usr,true);
+		}
+			
+		
 		//TBD: broadcast game starts... whatever
+		let msg = game.getUsersJSON();
+		socket.broadcast.to(inGameId).emit('startGame', msg);
+		socket.emit('startGame', msg);
 		console.log(`START GAME for id=${inGameId}`);
-		
-		//TBD: randomize and fix user list
-		
-		
 	}
 
 	/* confirm connection */

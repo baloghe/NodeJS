@@ -60,8 +60,10 @@ var Game = (function() {
     function Game(inGameID, inInitiatedBy) {
 		let _gameID = inGameID;
 		let _initiatedBy = inInitiatedBy;
+		let _waitingList = new Set();
 		let _gameConstants = null;
 		let _deck = null;
+		let _users = null; //Array of {human: true/false, data: JSON string, points: int}
 		
         this.getGameID = function() {
             return _gameID;
@@ -77,7 +79,20 @@ var Game = (function() {
 			//	computerPlayer:		
 			//	maxHumanPlayers:	
 			_gameConstants = gc;
-		}
+		};
+		
+		this.addUserToWaitingList = function(u){
+			_waitingList.add(u);
+		};		
+		this.removeUserFromWaitingList = function(u){
+			_waitingList.delete(u);
+		};
+		this.getWaitingList = function(){return _waitingList;};
+		
+		this.getNumCards = function(){return parseInt(_gameConstants.numCards);};
+		this.getLimitThinkingTime = function(){return parseInt(_gameConstants.limitThinkingTime);};
+		this.computerPlayerAllowed = function(){return _gameConstants.computerPlayer;};
+		this.getMaxHumanPlayers = function(){return parseInt(_gameConstants.maxHumanPlayers);};
 		
 		this.serverPreInit = function(cardInfoArr){
 			//create deck by selecting pictures and form pairs of cards
@@ -89,7 +104,7 @@ var Game = (function() {
 							i => {return new CardInfo( i.cardID, i.url, i.artist, i.creationDate, i.caption, i.otherInfo )}
 						)
 				);
-		}
+		};
 		
 		this.clientPreInit = function(){
 			//create deck without any knowledge on card content
@@ -100,7 +115,36 @@ var Game = (function() {
 			//generate Board
 			let bDim = CONSTANTS.getLayout( _gameConstants["numCards"] );
 			CLIENT_BOARD = new Board(bDim.r, bDim.c);
-		}
+		};
+		
+		this.setUsers = function(userArr, shuffle){
+			_users = userArr;
+			//append points=0 for each user
+			for(const u of _users){
+				u.points = 0;
+			}
+			//server-side: selected users are reshuffled
+			//client-side: already reshuffled list is received, no further shuffle is needed
+			if(shuffle){
+				shuffleArray(_users);
+			}
+		};
+		
+		this.getUsersJSON = function(){return JSON.stringify(_users);};
+		
+		//iterator over the users in the Game
+		this.users = function(){
+			let i=0;
+			return {
+				[Symbol.iterator](){
+					return this;
+				},
+				next: () => ({
+					done: i >= _users.length,
+					value: _users[i++]
+				})
+			};
+		};
 		
     }
 
@@ -226,7 +270,7 @@ var Deck = (function() {
 			
 			//final deck: each item represented by a proper Card object
 			_deck = Array.from({length: _size}).map(
-						(e,i)=>{
+						(e,i) => {
 							let ret = new Card(i);
 							ret.info( d[i] );
 							if(ret.info().getUrl()){
