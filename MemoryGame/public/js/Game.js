@@ -2,6 +2,12 @@ var Constants = (function(){
 
 	function Constants(){
 		
+		let _waitSec = {
+				"none"	: 60,
+				"10sec"	: 10,
+				"20sec"	: 20
+			};
+		
 		let _layout = {
 				"8pairs"	: {"r": 4, "c": 4},
 				"12pairs"	: {"r": 6, "c": 4},
@@ -44,6 +50,10 @@ var Constants = (function(){
 			return _deckSize[pairs];
 		}
 		
+		this.getLimitThinkingTime = function(opt){
+			return _waitSec[opt];
+		}
+		
 	}
 
 	return Constants;
@@ -65,6 +75,10 @@ var Game = (function() {
 		let _gameConstantsSet = false;
 		let _deck = null;
 		let _users = null; //Array of {human: true/false, data: JSON string, points: int}
+		let _firstGuess = null; //cardID
+		let _guessStack = null; //Array of {linearPosition, cardID}, unshifted with new guess
+		let _userPointer = null;
+		let _cardsFound = null;
 		
         this.getGameID = function() {
             return _gameID;
@@ -94,7 +108,7 @@ var Game = (function() {
 		this.getWaitingList = function(){return _waitingList;};
 		
 		this.getNumCards = function(){return parseInt(_gameConstants.numCards);};
-		this.getLimitThinkingTime = function(){return parseInt(_gameConstants.limitThinkingTime);};
+		this.getLimitThinkingTime = function(){return CONSTANTS.getLimitThinkingTime(_gameConstants.limitThinkingTime);};
 		this.computerPlayerAllowed = function(){return _gameConstants.computerPlayer;};
 		this.getMaxHumanPlayers = function(){return parseInt(_gameConstants.maxHumanPlayers);};
 		
@@ -119,6 +133,12 @@ var Game = (function() {
 			//generate Board
 			let bDim = CONSTANTS.getLayout( _gameConstants["numCards"] );
 			CLIENT_BOARD = new Board(bDim.r, bDim.c);
+		};
+		
+		this.serverStartGame = function(){
+			_guessStack = []; 
+			_userPointer = 0;
+			_cardsFound = 0;
 		};
 		
 		this.setUsers = function(userArr, shuffle){
@@ -148,6 +168,63 @@ var Game = (function() {
 					value: _users[i++]
 				})
 			};
+		};
+		
+		this.getActualUser = function(){
+			return _users[_userPointer];
+		};
+		
+		this.showCard = function(inLinPos, inUser){
+			//someone made a guess
+			let ret = {
+						response: '',
+						info: null,
+						roundFinished: false,
+						foundPair: false,
+						gameFinished: false
+					};
+			
+			//check if user and given linear position are valid
+			if(inLinPos < 0 || inLinPos >= _deck.getSize()){
+				ret.response = 'ERR_GUESS_INVALID_LINPOS';
+				return ret;
+			} else if(inUser != _users[_userPointer].data){
+				ret.response = 'ERR_GUESS_INVALID_USER';
+				return ret;
+			} else {
+				ret.response = 'GUESS_VALID';
+			}
+			
+			//valid guess => let's see it
+			ret.info = _deck.getCard(inLinPos).info();
+			let cid = ret.info.cardID();
+			_guessStack.unShift({linearPosition: inLinPos, cardID: cid});
+			if(_firstGuess==null){
+				_firstGuess = cid;
+				return ret;
+			} else {
+				ret.foundPair = ( _firstGuess==cid );
+				if( ret.foundPair ){
+					//pair found => user remains in turn and points augmented
+					ret.foundPair = true;
+					_users[_userPointer].points++;
+					_cardsFound += 2;
+				} else {
+					//different cards found => advance pointer
+					ret.roundFinished = true;					
+					_userPointer++;
+					if(_userPointer >= _users.length){
+						_userPointer = 0;
+					}
+				}
+				//2nd guess made => empty first guess
+				_firstGuess = null;
+				//all cards found => game finished
+				if(_cardsFound == _deck.getSize()){
+					ret.gameFinished = true;
+				}
+			}
+			return ret;
 		};
 		
     }

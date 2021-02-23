@@ -293,6 +293,7 @@ io.sockets.on('connection', function (socket) {
 			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			processCancelGame(inGameId);
+			return;
 		} else if(users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed()){
 			//TBD: add computer to the users
 		} else {
@@ -312,13 +313,100 @@ io.sockets.on('connection', function (socket) {
 			//console.log(`  usr: ${typeof usr}, length: ${usr.length}`);
 			game.setUsers(usr,true);
 		}
-			
 		
-		//TBD: broadcast game starts... whatever
+		//finish initialization
+		game.serverStartGame();
+		
+		//TBD: broadcast game starts...
 		let msg = game.getUsersJSON();
 		socket.broadcast.to(inGameId).emit('startGame', msg);
 		socket.emit('startGame', msg);
 		console.log(`START GAME for id=${inGameId}`);
+		
+		//Game starts == first turn starts
+		processStartTurn(inGameId);
+	}
+	
+	/*"Game Loop"
+		a 'startTurn' message is sent to the next player (info: gameID, player JSON string, remainingSecs)
+			other players receive a 'watchTurn' message (info: gameID, player JSON string, remainingSecs)
+			a countdown for a reasonably long period (e.g. 1 minute) is also set that sends signals every second to all players in the room: 'turnCountDown' (info: gameID, remainingSecs)
+		when finished (or time is over), a 'stopTurn' is sent to all participants (info: gameID, updated scores of each)
+		between 'startTurn' and 'stopTurn' the player whose turn it is may send up to two 'showCard' messages to the server (info: gameID, player JSON string, linearPosition of the requested card)
+			the server returns (and broadcasts) a 'showCard' message to all participants containing a CardInfo object (info: gameID, linearPosition, CardInfo)
+			the second 'showCard' message received from the player finishes the turn
+				in this case the server evaluates whether the two cards constitute a pair
+				if so, the next turn is played by the same player
+				
+		Game Over if
+			1) no more cards to turn over on the board
+			2) number of players <= 1
+		Then a 'gameOver' message is sent to all (remaining) participants in the room (info: gameID, final scores of each)
+	*/
+	
+	socket.on('showCard', function(data) {
+		console.log(`showCard by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'}, data=${data}`);
+		
+		let parsedData = JSON.parse(data);
+		let gid = parsedData["gameID"];
+		let lp = parsedData["linearPosition"];
+		
+		let game = gameRegistry[gid].gameObj;
+		
+		let ci = game.showCard( lp, socket.user.strJSON );
+		
+		if(ci.response == 'ERR_GUESS_INVALID_LINPOS' || ci.response == 'ERR_GUESS_INVALID_USER'){
+			socket.emit(ci.response);
+		}
+		
+		let msg = JSON.parse({
+						gameID: gid,
+						linearPosition: lp,
+						cardInfo: ci.info,
+						foundPair: ci.foundPair
+					});
+		socket.emit('showCard', msg);
+		socket.broadcast.to(gid).emit('showCard', msg);
+		
+		//if turn / game finished: perform respective actions
+		if(ci.gameFinished){
+			processGameOver(gid);
+		} else if(ci.roundFinished){
+			processStopTurn(gid);
+			//next user in charge
+			processStartTurn(gid);
+		}
+	});
+	
+	function processGameOver(gid){
+		//finish game and inform users in room
+		let game = gameRegistry[gid].gameObj;
+		let msg = {gameID: gid, users: game.getUsersJSON()};
+		socket.emit('gameOver', msg);
+		socket.broadcast.to(gid).emit('gameOver', msg);
+	}
+	
+	function processStopTurn(gid){
+		//finish round
+		let game = gameRegistry[gid].gameObj;
+		let msg = {gameID: gid, users: game.getUsersJSON()};
+		socket.emit('stopTurn', msg);
+		socket.broadcast.to(gid).emit('stopTurn', msg);
+	}
+	
+	function processStartTurn(gid){
+		//ask which player is in charge
+		let game = gameRegistry[gid].gameObj;
+		let usr = game.getActualUser();
+		if(usr.human){
+			//Human plays
+			let msg = {gameID: gid, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
+			socket.emit('startTurn', msg);
+			socket.broadcast.to(gid).emit('startTurn', msg);
+		} else {
+			//Computer plays
+			//TBD...
+		}
 	}
 
 	/* confirm connection */
