@@ -223,9 +223,13 @@ function updateProfileOnPage(inName, inAvatarSrc){
 	$('#dvProfile').html(html);
 }
 
-function remainingSecToStart(inSec){
+function remainingSec(inSec){
 	//TBD: another second elapsed => show it on screen!
-	$('#spRemainingSecs').html(inSec);
+	if(Application.state === 'IN_GAME'){
+		$('#spRemainingSecsFromTurn').html(inSec);
+	} else {
+		$('#spRemainingSecsToStart').html(inSec);
+	}
 }
 
 function gameSettingsFinalized(inGameConstants){
@@ -356,8 +360,38 @@ function resetUsersUnderBoard(){
 	}
 	console.log('Users under board rendered...');
 }
+
 function resetCardInfoDivs(){
-	//TBD!!!!!!!  generation with tmplCardInfo -> TBD as well
+	$('#dvPic1').empty();
+	$('#dvPic2').empty();
+}
+
+function startTurn(msg){
+	//hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+	//enable everything
+	//refresh points
+	let users = msg["users"];
+	for(let i=0; i<users.length; i++){
+		refreshPoints(i, users[i]);
+	}
+	//write remaining secs
+	remainingSec(msg["remainingSec"]);
+}
+
+function watchTurn(msg){
+	//hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+	//disable everything
+	//refresh points
+	let users = msg["users"];
+	for(let i=0; i<users.length; i++){
+		refreshPoints(i, users[i]);
+	}
+	//write remaining secs
+	remainingSec(msg["remainingSec"]);
+}
+
+function refreshPoints(i, user){
+	$('#ptsBoard'+(i+1)).html(user.points);
 }
 
 

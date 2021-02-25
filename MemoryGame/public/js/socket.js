@@ -56,10 +56,10 @@ var SWP = (function(){
 			gameSettingsFinalized(gc);
 		});
 		
-		SOCKET.on('remainingSecToStart', function(data) {
-			//console.log(`remainingSecToStart :: data=${data}`);
+		SOCKET.on('remainingSec', function(data) {
+			//console.log(`remainingSec :: data=${data}`);
 			var s = JSON.parse(data)["sec"];
-			remainingSecToStart(s);
+			remainingSec(s);
 		});
 
 		SOCKET.on('userDisconnected', function(data) {
@@ -72,6 +72,36 @@ var SWP = (function(){
 			console.log(`startGame :: data=${data}`);
 			var users = JSON.parse(data);
 			startGame(users);
+		});
+
+		SOCKET.on('startTurn', function(data) {
+			console.log(`startTurn :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
+				startTurn(msg);
+			} else {
+				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+			}
+		});
+
+		SOCKET.on('watchTurn', function(data) {
+			console.log(`watchTurn :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
+				watchTurn(msg);
+			} else {
+				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+			}
+		});
+
+		SOCKET.on('stopTurn', function(data) {
+			console.log(`stopTurn :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
+				watchTurn(msg);
+			} else {
+				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+			}
 		});
 		
 		

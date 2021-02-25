@@ -60,16 +60,20 @@ Constants
 const CONSTANTS = new Constants();
 
 function enumUsers(gid){
+	let c=getSocketArray(gid)
+	let roster = c.map((s) => s.user.name).join(', ');
+	return '['+c.length+'] ' + roster;
+}
+
+function getSocketArray(gid){
 	const clients = io.sockets.adapter.rooms.get(gid);
-	const numClients = clients ? clients.size : 0;
 	let c=[];
 	for (const clientId of clients ) {
 		//this is the socket of each client in the room.
 		const clientSocket = io.sockets.sockets.get(clientId);
 		c.push(clientSocket);
 	}
-	let roster = c.map((s) => s.user.name).join(', ');
-	return '['+numClients+'] ' + roster;
+	return c;
 }
 
 /* Websocket tasks */
@@ -111,7 +115,7 @@ io.sockets.on('connection', function (socket) {
 			socket.emit('gameSettingsFinalized', JSON.stringify( gc ));
 			console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
 			
-			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart()-1);//in fact the first run will occur a second later
+			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart()-1, processStartGame);//in fact the first run will occur a second later
 			console.log(`  interval set for ${gameRegistry[gid].gameObj.secRemainingToStart} secs`);
 		
 			//set up game on server side
@@ -174,8 +178,9 @@ io.sockets.on('connection', function (socket) {
 		socket.removeAllListeners();
 	});
 	
-	function initializeCountDown(socket, gid, numSec) {
+	function initializeCountDown(socket, gid, numSec, callback) {
 		gameRegistry[gid].gameObj.secRemainingToStart = numSec;
+		socket = socket || getSocketArray(gid)[0]; //either game initiator or someone from the same room
 		const ivl = setInterval(() => {
 			let s = JSON.stringify({sec: numSec});
 			socket.broadcast.to(gid).emit('remainingSecToStart', s );
@@ -185,7 +190,8 @@ io.sockets.on('connection', function (socket) {
 			
 			if(numSec <= 0){
 				clearInterval(ivl);
-				processStartGame(gid);
+				//processStartGame(gid);
+				callback(gid);
 			}
 		},1000);
 	}
@@ -390,6 +396,7 @@ io.sockets.on('connection', function (socket) {
 		//finish round
 		let game = gameRegistry[gid].gameObj;
 		let msg = {gameID: gid, users: game.getUsersJSON()};
+		let socket = getSocketArray(gid)[0];
 		socket.emit('stopTurn', msg);
 		socket.broadcast.to(gid).emit('stopTurn', msg);
 	}
@@ -400,13 +407,23 @@ io.sockets.on('connection', function (socket) {
 		let usr = game.getActualUser();
 		if(usr.human){
 			//Human plays
-			let msg = {gameID: gid, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
-			socket.emit('startTurn', msg);
-			socket.broadcast.to(gid).emit('startTurn', msg);
+			let msg = {gameID: gid, targetUser: usr.strJSON, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
+			let arr = getSocketArray(gid);
+			for(const s of arr){
+				if( usr.strJSON === s.user.strJSON ){
+					//great, this user's turn
+					io.to(s.id).emit('startTurn', msg);
+				} else {
+					//all the others just watch
+					io.to(s.id).emit('watchTurn', msg);
+				}
+			}//next socket
 		} else {
 			//Computer plays
 			//TBD...
-		}
+		}//endif
+		
+		initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);		
 	}
 
 	/* confirm connection */

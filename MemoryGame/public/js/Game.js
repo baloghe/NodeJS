@@ -174,6 +174,15 @@ var Game = (function() {
 			return _users[_userPointer];
 		};
 		
+		this.incUserPoint = function(userJSON){
+			for(let u of _users){
+				if(userJSON==u["data"]){
+					u.points++;
+					return;
+				}//endif
+			}//next u
+		};
+		
 		this.showCard = function(inLinPos, inUser){
 			//someone made a guess
 			let ret = {
