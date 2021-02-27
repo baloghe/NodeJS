@@ -139,6 +139,7 @@ var Game = (function() {
 			_guessStack = []; 
 			_userPointer = 0;
 			_cardsFound = 0;
+			console.log(`Game.serverStartGame :: _users[_userPointer]=${JSON.parse(_users[_userPointer].data).name}`);
 		};
 		
 		this.setUsers = function(userArr, shuffle){
@@ -152,6 +153,7 @@ var Game = (function() {
 			if(shuffle){
 				shuffleArray(_users);
 			}
+			console.log(`Game.setUsers :: len=${_users.length}`);
 		};
 		
 		this.getUsersJSON = function(){return JSON.stringify(_users);};

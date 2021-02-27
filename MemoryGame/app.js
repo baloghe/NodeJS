@@ -66,7 +66,8 @@ function enumUsers(gid){
 }
 
 function getSocketArray(gid){
-	const clients = io.sockets.adapter.rooms.get(gid);
+	const clients = Array.from(io.sockets.adapter.rooms.get(gid));
+	//console.log(`getSocketArray :: gid=${gid}, typeof clients = ${typeof clients}`);
 	let c=[];
 	for (const clientId of clients ) {
 		//this is the socket of each client in the room.
@@ -183,10 +184,10 @@ io.sockets.on('connection', function (socket) {
 		socket = socket || getSocketArray(gid)[0]; //either game initiator or someone from the same room
 		const ivl = setInterval(() => {
 			let s = JSON.stringify({sec: numSec});
-			socket.broadcast.to(gid).emit('remainingSecToStart', s );
-			socket.emit('remainingSecToStart', s );
+			socket.broadcast.to(gid).emit('remainingSec', s );
+			socket.emit('remainingSec', s );
 			numSec--;
-			//console.log(`  remainingSecToStart broadcasted, left: ${s} s, gid=${gid}`);
+			//console.log(`  remainingSec broadcasted, left: ${s} s, gid=${gid}`);
 			
 			if(numSec <= 0){
 				clearInterval(ivl);
@@ -365,14 +366,14 @@ io.sockets.on('connection', function (socket) {
 			socket.emit(ci.response);
 		}
 		
-		let msg = JSON.parse({
+		let msg = {
 						gameID: gid,
 						linearPosition: lp,
 						cardInfo: ci.info,
 						foundPair: ci.foundPair
-					});
-		socket.emit('showCard', msg);
-		socket.broadcast.to(gid).emit('showCard', msg);
+					};
+		socket.emit('showCard', JSON.stringify(msg));
+		socket.broadcast.to(gid).emit('showCard', JSON.stringify(msg));
 		
 		//if turn / game finished: perform respective actions
 		if(ci.gameFinished){
@@ -388,8 +389,8 @@ io.sockets.on('connection', function (socket) {
 		//finish game and inform users in room
 		let game = gameRegistry[gid].gameObj;
 		let msg = {gameID: gid, users: game.getUsersJSON()};
-		socket.emit('gameOver', msg);
-		socket.broadcast.to(gid).emit('gameOver', msg);
+		socket.emit('gameOver', JSON.stringify(msg));
+		socket.broadcast.to(gid).emit('gameOver', JSON.stringify(msg));
 	}
 	
 	function processStopTurn(gid){
@@ -397,25 +398,29 @@ io.sockets.on('connection', function (socket) {
 		let game = gameRegistry[gid].gameObj;
 		let msg = {gameID: gid, users: game.getUsersJSON()};
 		let socket = getSocketArray(gid)[0];
-		socket.emit('stopTurn', msg);
-		socket.broadcast.to(gid).emit('stopTurn', msg);
+		socket.emit('stopTurn', JSON.stringify(msg));
+		socket.broadcast.to(gid).emit('stopTurn', JSON.stringify(msg));
 	}
 	
 	function processStartTurn(gid){
 		//ask which player is in charge
 		let game = gameRegistry[gid].gameObj;
 		let usr = game.getActualUser();
+		console.log(`processStartTurn :: gid=${gid}, game.getActualUser=${usr.data}`);
 		if(usr.human){
 			//Human plays
-			let msg = {gameID: gid, targetUser: usr.strJSON, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
+			let msg = {gameID: gid, targetUser: usr.data, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
 			let arr = getSocketArray(gid);
 			for(const s of arr){
-				if( usr.strJSON === s.user.strJSON ){
+				console.log(`  usr.strJSON=${usr.data}, s.user.strJSON=${s.user.strJSON}`);
+				if( usr.data === s.user.strJSON ){
 					//great, this user's turn
-					io.to(s.id).emit('startTurn', msg);
+					msg.targetUser = usr.data;
+					io.to(s.id).emit('startTurn', JSON.stringify(msg));
 				} else {
 					//all the others just watch
-					io.to(s.id).emit('watchTurn', msg);
+					msg.targetUser = s.user.strJSON;
+					io.to(s.id).emit('watchTurn', JSON.stringify(msg));
 				}
 			}//next socket
 		} else {

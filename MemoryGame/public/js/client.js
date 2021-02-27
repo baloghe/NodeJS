@@ -246,7 +246,7 @@ function gameSettingsFinalized(inGameConstants){
 	$('#setMaxHumanPlayers').val(CLIENT_GAME.getMaxHumanPlayers());
 	
 	updateUI();
-	remainingSecToStart(CONSTANTS.getWaitSecBeforeStart());
+	remainingSec(CONSTANTS.getWaitSecBeforeStart());
 }
 
 function processCreateGame(gameData, asInitiator){
@@ -366,28 +366,31 @@ function resetCardInfoDivs(){
 	$('#dvPic2').empty();
 }
 
-function startTurn(msg){
-	//hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+function setupTurn(enable, msg){
+	//msg :: hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+	//clear card detail
+	resetCardInfoDivs();
 	//enable everything
+	if(enable){
+		console.log('TBD: ENABLE card selection on board');
+	} else {
+		console.log('TBD: DISABLE card selection on board');
+	}
 	//refresh points
 	let users = msg["users"];
 	for(let i=0; i<users.length; i++){
 		refreshPoints(i, users[i]);
 	}
 	//write remaining secs
-	remainingSec(msg["remainingSec"]);
+	remainingSec(msg["remainingSec"]);	
+}
+
+function startTurn(msg){
+	setupTurn(true, msg);
 }
 
 function watchTurn(msg){
-	//hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
-	//disable everything
-	//refresh points
-	let users = msg["users"];
-	for(let i=0; i<users.length; i++){
-		refreshPoints(i, users[i]);
-	}
-	//write remaining secs
-	remainingSec(msg["remainingSec"]);
+	setupTurn(false, msg);
 }
 
 function refreshPoints(i, user){
