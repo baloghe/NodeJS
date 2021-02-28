@@ -80,6 +80,8 @@ var Game = (function() {
 		let _userPointer = null;
 		let _cardsFound = null;
 		
+		let _countDown = null;
+		
 		let _clientGuess = [];
 		
         this.getGameID = function() {
@@ -225,8 +227,6 @@ var Game = (function() {
 			} else if(inUser != _users[_userPointer].data){
 				ret.response = 'ERR_GUESS_INVALID_USER';
 				return ret;
-			} else {
-				ret.response = 'GUESS_VALID';
 			}
 			
 			//valid guess => let's see it
@@ -235,8 +235,10 @@ var Game = (function() {
 			_guessStack.unshift({linearPosition: inLinPos, cardID: cid});
 			if(_firstGuess==null){
 				_firstGuess = cid;
+				ret.response = 'FIRST_GUESS_VALID';
 				return ret;
 			} else {
+				ret.response = 'SECOND_GUESS_VALID';
 				ret.foundPair = ( _firstGuess==cid );
 				if( ret.foundPair ){
 					//pair found => user remains in turn and points augmented
@@ -261,6 +263,17 @@ var Game = (function() {
 				}
 			}
 			return ret;
+		};
+		
+		this.setCountDown = function(ivl){
+			_countDown = ivl;
+		};
+		
+		this.clearCountDown = function(){
+			if( _countDown != null ){
+				clearInterval(_countDown);
+				_countDown = null;
+			}
 		};
 		
     }

@@ -415,25 +415,20 @@ function showCard(msg){
 	if(msg["foundPair"]){
 		//disable the pair
 		let pair = msg["pair"];
-		$('#dvCard'+pair[0]).removeClass("enableFlip");
-		$('#dvCard'+pair[0]).unbind( "click" );
-		$('#dvCard'+pair[1]).removeClass("enableFlip");
-		$('#dvCard'+pair[1]).unbind( "click" );
+		$('#dvCard'+pair[0].linearPosition).removeClass("enableFlip");
+		$('#dvCard'+pair[0].linearPosition).unbind( "click" );
+		$('#dvCard'+pair[1].linearPosition).removeClass("enableFlip");
+		$('#dvCard'+pair[1].linearPosition).unbind( "click" );
+		//?? resetCardInfoDivs() needed?
 		//wait a little bit and remove from board
 		setTimeout(function(){
-			 hideCard(pair[0]);
-			 hideCard(pair[1]);
+			 hideCard(pair[0].linearPosition);
+			 hideCard(pair[1].linearPosition);
 		},3000);
 	}
 }
 
 function setupBoard(enable){
-	/*
-	let cards = $( "#dvCards" ).find( "div.card" ).not(".hide");
-	for(c of cards){
-		c.addClass("enableFlip");
-	}//next card
-	*/
 	$( "#dvCards" ).find( "div.card" ).not(".hide").each(
 		function(){
 			//regardless of currentuser watching/playing it, flip back all cards
@@ -451,6 +446,22 @@ function setupBoard(enable){
 	);
 }
 
+function setTurnInfo(inTxt, inClass){
+	$('#pTurnInfo').empty();
+	let span = $('<span />').attr({'className': inClass, 'html': inTxt });
+	$('#pTurnInfo').append(span);
+}
+
+function setActiveUser(targetUser, users){
+	for(let i=0; i<users.length; i++){
+		if( users[i].data === targetUser ){
+			$('dvUser'+(i+1)).addClass('active');
+		} else {
+			$('dvUser'+(i+1)).removeClass('active');			
+		}
+	}//next user
+}
+
 function setupTurn(enable, msg){
 	//msg :: hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
 	//clear card detail
@@ -460,16 +471,20 @@ function setupTurn(enable, msg){
 	//refresh points
 	let users = msg["users"];
 	refreshPointsInTurn(users);
+	let targetUser = msg["targetUser"];
+	setActiveUser(targetUser, users);
 	//write remaining secs
 	remainingSec(msg["remainingSec"]);	
 }
 
 function startTurn(msg){
 	setupTurn(true, msg);
+	setTurnInfo('Your turn!', 'blue');
 }
 
 function watchTurn(msg){
 	setupTurn(false, msg);
+	setTurnInfo("Someone else's turn", 'black');
 }
 
 function stopTurn(msg){
@@ -510,23 +525,6 @@ html=$.templates('#tmplUserList').render(task);
 $('#dvProfile').html(html);
 //console.log(html);
 console.log('Profile when not logged yet rendered...');
-
-//User list logged in   -- discarded and replaced with Game ID
-/*
-task = {tableHeaderClass: "tableHeader",
-		listCaption: "Users",
-		nameClass: "userName",
-		elems: [
-			{avatarSrc: "https://image.flaticon.com/icons/png/128/3667/3667325.png", name: "Sarah Windsor"},
-			{avatarSrc: "https://image.flaticon.com/icons/png/128/1077/1077114.png", name: "John Doe"},
-			{avatarSrc: "https://image.flaticon.com/icons/png/128/3667/3667250.png", name: "Mr. White"}
-		]
-		};
-html=$.templates('#tmplUserList').render(task);
-$('#dvUsers').html(html);
-//console.log(html);
-console.log('User list rendered...');
-*/
 
 //Game initiated by
 task = {avatarSrc: "https://image.flaticon.com/icons/png/128/3667/3667250.png", name: "Mr. White"};

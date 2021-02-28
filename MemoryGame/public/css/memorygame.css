@@ -156,6 +156,18 @@ img.avatar {
 	height: 100px;
 }
 
+.turninfo {
+	text-align:center;
+}
+
+span.blue {
+	color: blue;
+}
+
+span.black {
+	color: black;
+}
+
 .showPic {
 	height: 100%;
 	width: 100%;
@@ -205,4 +217,8 @@ input:valid{
 
 .enableFlip:hover{
 	box-shadow: 0 0 5px 1px orange;
+}
+
+.active{
+	border: 5px solid green;
 }

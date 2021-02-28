@@ -31,9 +31,9 @@ var io = require('socket.io')(httpd);
 
 /* serve homepage */
 function serveHome(req, res){
-//console.log('serveHome called');
-//res.sendFile(path.join(__dirname, '/index.html'));
-res.sendFile('./public/index.html',{"root": __dirname});
+	//console.log('serveHome called');
+	//res.sendFile(path.join(__dirname, '/index.html'));
+	res.sendFile('./public/index.html',{"root": __dirname});
 }
 
 /* redirect GET requests */
@@ -195,6 +195,8 @@ io.sockets.on('connection', function (socket) {
 				callback(gid);
 			}
 		},1000);
+		
+		return ivl;
 	}
 
 	function processLogin(socket, loginData){
@@ -380,9 +382,14 @@ io.sockets.on('connection', function (socket) {
 		if(ci.gameFinished){
 			processGameOver(gid);
 		} else if(ci.roundFinished){
-			processStopTurn(gid);
-			//next user in charge
-			processStartTurn(gid);
+			//may delay with a few secs IF it was triggered by a second guess
+			let delay = (ci.response === 'SECOND_GUESS_VALID' ? 2000 : 0);
+			setTimeout(function(){
+					processStopTurn(gid);
+					//next user in charge
+					processStartTurn(gid);
+				}, delay
+			);
 		}
 	});
 	
@@ -397,6 +404,8 @@ io.sockets.on('connection', function (socket) {
 	function processStopTurn(gid){
 		//finish round
 		let game = gameRegistry[gid].gameObj;
+		game.clearCountDown();
+		
 		let msg = {gameID: gid, users: game.getUsersJSON()};
 		let socket = getSocketArray(gid)[0];
 		socket.emit('stopTurn', JSON.stringify(msg));
@@ -429,7 +438,8 @@ io.sockets.on('connection', function (socket) {
 			//TBD...
 		}//endif
 		
-		initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);		
+		let ivl = initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);
+		game.setCountDown(ivl);
 	}
 
 	/* confirm connection */
