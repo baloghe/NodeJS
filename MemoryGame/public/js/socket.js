@@ -80,7 +80,7 @@ var SWP = (function(){
 			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
 				startTurn(msg);
 			} else {
-				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+				console.log(`ERROR: startTurn / wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
 			}
 		});
 
@@ -90,17 +90,27 @@ var SWP = (function(){
 			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
 				watchTurn(msg);
 			} else {
-				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+				console.log(`ERROR: watchTurn / wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
 			}
 		});
 
 		SOCKET.on('stopTurn', function(data) {
 			console.log(`stopTurn :: data=${data}`);
 			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
-			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
-				watchTurn(msg);
+			if(msg["gameID"] === CLIENT_GAME.getGameID() ){
+				stopTurn(msg);
 			} else {
-				console.log(`ERROR: wrong target, current gid=${CLIENT_GAME.getGameID()}, current user=${CURRENT_USER.strJSON}`);
+				console.log(`ERROR: stopTurn / wrong target, current gid=${CLIENT_GAME.getGameID()}`);
+			}
+		});
+
+		SOCKET.on('showCard', function(data) {
+			console.log(`showCard (received) :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , linearPosition: , cardInfo: , foundPair:, pair: }
+			if(msg["gameID"] === CLIENT_GAME.getGameID()){
+				showCard(msg);
+			} else {
+				console.log(`ERROR: showCard / wrong game id, current gid=${CLIENT_GAME.getGameID()}`);
 			}
 		});
 		
@@ -133,6 +143,16 @@ var SWP = (function(){
 			var msgData = {gameId: inGameId};
 			console.log(`leaveGame :: msgData=${JSON.stringify(msgData)}`);
 			SOCKET.emit('leaveGame', JSON.stringify(msgData));
+		}
+		
+		this.showCard = function(linPos){
+			var msgData = {
+					gameID: CLIENT_GAME.getGameID(),
+					requestor: CURRENT_USER.strJSON,
+					linearPosition: linPos
+				};
+			console.log(`showCard (sent) :: msgData=${JSON.stringify(msgData)}`);
+			SOCKET.emit('showCard', JSON.stringify(msgData));
 		}
 
 	}

@@ -366,21 +366,100 @@ function resetCardInfoDivs(){
 	$('#dvPic2').empty();
 }
 
+function selectCard(evt){
+	let linPos = evt.data.linearPosition;
+	console.log(`selectCard :: ${linPos}`);
+	CLIENT_SOCKET.showCard(linPos);
+}
+
+function hideCard(linPos){
+	let idx=linPos;
+	//set background
+	$('#dvCardBack'+idx).empty();
+	$('#dvCardBack'+idx).html('');
+	//rotate
+	$('#dvCardFront'+idx).addClass('front');
+	$('#dvCardFront'+idx).removeClass('card-flipped-front');
+	$('#dvCardBack'+idx).addClass('back');
+	$('#dvCardBack'+idx).removeClass('card-flipped-back');		
+}
+
+function showCard(msg){
+	let idx = msg["linearPosition"];
+	let cinf = msg["cardInfo"];
+	let hasPic = !(cinf.url==null);
+	console.log(`showCard :: idx=${idx}, hasPic=${hasPic}, cardID=${cinf.cardID}`);
+	
+	//logically
+	//? not necessarily
+	
+	//graphically
+	if(hasPic){
+		$('#dvCardBack'+idx).html('');
+		var img = $('<img />').attr({
+				'src': cinf.url,
+				'class':'showPic',
+				'alt': cinf.cardID
+			});
+		$('#dvCardBack'+idx).append(img);
+	} else {
+		$('#dvCardBack'+idx).empty();
+		$('#dvCardBack'+idx).html( cinf.cardID );
+	}
+	//rotate
+	$('#dvCardFront'+idx).removeClass('front');
+	$('#dvCardFront'+idx).addClass('card-flipped-front');
+	$('#dvCardBack'+idx).removeClass('back');
+	$('#dvCardBack'+idx).addClass('card-flipped-back');
+	
+	if(msg["foundPair"]){
+		//disable the pair
+		let pair = msg["pair"];
+		$('#dvCard'+pair[0]).removeClass("enableFlip");
+		$('#dvCard'+pair[0]).unbind( "click" );
+		$('#dvCard'+pair[1]).removeClass("enableFlip");
+		$('#dvCard'+pair[1]).unbind( "click" );
+		//wait a little bit and remove from board
+		setTimeout(function(){
+			 hideCard(pair[0]);
+			 hideCard(pair[1]);
+		},3000);
+	}
+}
+
+function setupBoard(enable){
+	/*
+	let cards = $( "#dvCards" ).find( "div.card" ).not(".hide");
+	for(c of cards){
+		c.addClass("enableFlip");
+	}//next card
+	*/
+	$( "#dvCards" ).find( "div.card" ).not(".hide").each(
+		function(){
+			//regardless of currentuser watching/playing it, flip back all cards
+			let linPos = parseInt($(this).attr('id').substr(6));
+			hideCard(linPos);
+			//enable/disable flip as requested
+			if(enable){
+				$(this).addClass("enableFlip");
+				$(this).click( {"linearPosition": linPos}, selectCard );
+			} else {
+				$(this).removeClass("enableFlip");
+				$(this).unbind( "click" );
+			}
+		}
+	);
+}
+
 function setupTurn(enable, msg){
 	//msg :: hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
 	//clear card detail
 	resetCardInfoDivs();
-	//enable everything
-	if(enable){
-		console.log('TBD: ENABLE card selection on board');
-	} else {
-		console.log('TBD: DISABLE card selection on board');
-	}
+	//enable/disable card selection
+	setupBoard(enable);
 	//refresh points
 	let users = msg["users"];
-	for(let i=0; i<users.length; i++){
-		refreshPoints(i, users[i]);
-	}
+	refreshPointsInTurn(users);
 	//write remaining secs
 	remainingSec(msg["remainingSec"]);	
 }
@@ -391,6 +470,20 @@ function startTurn(msg){
 
 function watchTurn(msg){
 	setupTurn(false, msg);
+}
+
+function stopTurn(msg){
+	//disable board
+	setupBoard(false);
+	//refresh user points
+	let users = msg["users"];
+	refreshPointsInTurn(users);
+}
+
+function refreshPointsInTurn(users){
+	for(let i=0; i<users.length; i++){
+		refreshPoints(i, users[i]);
+	}	
 }
 
 function refreshPoints(i, user){

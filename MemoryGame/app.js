@@ -370,7 +370,8 @@ io.sockets.on('connection', function (socket) {
 						gameID: gid,
 						linearPosition: lp,
 						cardInfo: ci.info,
-						foundPair: ci.foundPair
+						foundPair: ci.foundPair,
+						pair: ci.pair
 					};
 		socket.emit('showCard', JSON.stringify(msg));
 		socket.broadcast.to(gid).emit('showCard', JSON.stringify(msg));

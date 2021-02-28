@@ -74,11 +74,13 @@ var Game = (function() {
 		let _gameConstants = null;
 		let _gameConstantsSet = false;
 		let _deck = null;
-		let _users = null; //Array of {human: true/false, data: JSON string, points: int}
+		let _users = null; //Array of {human: true/false, data: JSON string, points: int, time: 0}
 		let _firstGuess = null; //cardID
 		let _guessStack = null; //Array of {linearPosition, cardID}, unshifted with new guess
 		let _userPointer = null;
 		let _cardsFound = null;
+		
+		let _clientGuess = [];
 		
         this.getGameID = function() {
             return _gameID;
@@ -144,9 +146,10 @@ var Game = (function() {
 		
 		this.setUsers = function(userArr, shuffle){
 			_users = userArr;
-			//append points=0 for each user
+			//append points=0 and time=0 for each user
 			for(const u of _users){
 				u.points = 0;
+				u.time = 0;
 			}
 			//server-side: selected users are reshuffled
 			//client-side: already reshuffled list is received, no further shuffle is needed
@@ -185,6 +188,25 @@ var Game = (function() {
 			}//next u
 		};
 		
+		this.incUserTime = function(userJSON, timeInSec){
+			for(let u of _users){
+				if(userJSON==u["data"]){
+					u.time += timeInSec;
+					return;
+				}//endif
+			}//next u
+		};
+		
+		this.showCardClient = function(linPos){
+			//current user made a guess
+			if(_clientGuess.length==0 || _clientGuess.length > 1){
+				_clientGuess = [];
+			}
+			_clientGuess.push(linPos);
+		};
+		
+		this.getGuessClient = function(){return _clientGuess;};
+		
 		this.showCard = function(inLinPos, inUser){
 			//someone made a guess
 			let ret = {
@@ -192,11 +214,12 @@ var Game = (function() {
 						info: null,
 						roundFinished: false,
 						foundPair: false,
+						pair: [],
 						gameFinished: false
 					};
 			
 			//check if user and given linear position are valid
-			if(inLinPos < 0 || inLinPos >= _deck.getSize()){
+			if(inLinPos==null || inLinPos < 0 || inLinPos >= _deck.getSize()){
 				ret.response = 'ERR_GUESS_INVALID_LINPOS';
 				return ret;
 			} else if(inUser != _users[_userPointer].data){
@@ -207,9 +230,9 @@ var Game = (function() {
 			}
 			
 			//valid guess => let's see it
-			ret.info = _deck.getCard(inLinPos).info();
-			let cid = ret.info.cardID();
-			_guessStack.unShift({linearPosition: inLinPos, cardID: cid});
+			ret.info = _deck.getCard(inLinPos).getInfoObj();
+			let cid = ret.info.cardID;
+			_guessStack.unshift({linearPosition: inLinPos, cardID: cid});
 			if(_firstGuess==null){
 				_firstGuess = cid;
 				return ret;
@@ -218,6 +241,8 @@ var Game = (function() {
 				if( ret.foundPair ){
 					//pair found => user remains in turn and points augmented
 					ret.foundPair = true;
+					ret.pair.push(_guessStack[0]);
+					ret.pair.push(_guessStack[1]);
 					_users[_userPointer].points++;
 					_cardsFound += 2;
 				} else {
@@ -271,6 +296,9 @@ var CardInfo = (function() {
         this.getOtherInfo = function() {
             return _otherInfo;
         };
+		this.getInfoObj = function(){
+			return {cardID:_cardID, url:_url, artist:_artist, creationDate:_creationDate, caption:_caption, otherInfo:_otherInfo};
+		};
     }
 
     return CardInfo;
@@ -299,6 +327,10 @@ var Card = (function() {
 				_info = data;
             } else return _info;
         };
+		
+		this.getInfoObj = function(){
+			return _info==null ? {} : _info.getInfoObj();
+		};
 		
 		this.found = function(b) {
 			if(typeof b !== 'undefined') {
@@ -368,7 +400,7 @@ var Deck = (function() {
 							if(ret.info().getUrl()){
 								ret.hasPic(true);
 							}
-							//console.log(`_deck :: ${i} -> ${ret.getLinearPos()}: ${ret.info() != null ? ret.info().getCaption() : false}`);
+							console.log(`_deck :: ${i} -> ${ret.getLinearPos()}: ${ret.info() != null ? ret.info().getCaption() : false}`);
 							return ret;
 						}
 					);
