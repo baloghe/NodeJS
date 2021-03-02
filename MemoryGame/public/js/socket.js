@@ -76,7 +76,7 @@ var SWP = (function(){
 
 		SOCKET.on('startTurn', function(data) {
 			console.log(`startTurn :: data=${data}`);
-			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, activeUser:user.strJSON, users: game.getUsersJSON(), remainingSec: }
 			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
 				startTurn(msg);
 			} else {
@@ -86,7 +86,7 @@ var SWP = (function(){
 
 		SOCKET.on('watchTurn', function(data) {
 			console.log(`watchTurn :: data=${data}`);
-			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+			var msg = JSON.parse(data); //{gameID: , targetUser: user.strJSON, activeUser:user.strJSON, users: game.getUsersJSON(), remainingSec: }
 			if(msg["gameID"] === CLIENT_GAME.getGameID() && msg["targetUser"] === CURRENT_USER.strJSON){
 				watchTurn(msg);
 			} else {

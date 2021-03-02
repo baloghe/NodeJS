@@ -372,8 +372,14 @@ function selectCard(evt){
 	CLIENT_SOCKET.showCard(linPos);
 }
 
-function hideCard(linPos){
+function hideCard(linPos, forever){
 	let idx=linPos;
+	//remove from board when needed
+	if(forever){
+		$('#dvCard'+idx).addClass('hide');
+		return;
+	}
+	//otherwise: simply flip it back
 	//set background
 	$('#dvCardBack'+idx).empty();
 	$('#dvCardBack'+idx).html('');
@@ -381,14 +387,14 @@ function hideCard(linPos){
 	$('#dvCardFront'+idx).addClass('front');
 	$('#dvCardFront'+idx).removeClass('card-flipped-front');
 	$('#dvCardBack'+idx).addClass('back');
-	$('#dvCardBack'+idx).removeClass('card-flipped-back');		
+	$('#dvCardBack'+idx).removeClass('card-flipped-back');
 }
 
 function showCard(msg){
 	let idx = msg["linearPosition"];
 	let cinf = msg["cardInfo"];
 	let hasPic = !(cinf.url==null);
-	console.log(`showCard :: idx=${idx}, hasPic=${hasPic}, cardID=${cinf.cardID}`);
+	console.log(`showCard :: idx=${idx}, hasPic=${hasPic}, cardID=${cinf.cardID}, foundPair: ${msg["foundPair"]}`);
 	
 	//logically
 	//? not necessarily
@@ -412,20 +418,33 @@ function showCard(msg){
 	$('#dvCardBack'+idx).removeClass('back');
 	$('#dvCardBack'+idx).addClass('card-flipped-back');
 	
+	//show card info
+	showCardInfo(msg, $('#dvPic1').is(':empty') ? 'dvPic1' : 'dvPic2');
+	
 	if(msg["foundPair"]){
 		//disable the pair
 		let pair = msg["pair"];
+		console.log(`  pair found=[${pair[0].linearPosition} , ${pair[1].linearPosition}]`);
 		$('#dvCard'+pair[0].linearPosition).removeClass("enableFlip");
 		$('#dvCard'+pair[0].linearPosition).unbind( "click" );
 		$('#dvCard'+pair[1].linearPosition).removeClass("enableFlip");
 		$('#dvCard'+pair[1].linearPosition).unbind( "click" );
-		//?? resetCardInfoDivs() needed?
+		//update user points
+		let users = msg["users"];
+		refreshPointsInTurn(users);
 		//wait a little bit and remove from board
 		setTimeout(function(){
-			 hideCard(pair[0].linearPosition);
-			 hideCard(pair[1].linearPosition);
-		},3000);
+			 hideCard(pair[0].linearPosition, true);
+			 hideCard(pair[1].linearPosition, true);
+			 resetCardInfoDivs();
+		},2000);
 	}
+}
+
+function showCardInfo(msg, targetElem){
+	let task = msg["cardInfo"];
+	let html=$.templates('#tmplCardInfo').render(task);
+	$('#'+targetElem).html(html);
 }
 
 function setupBoard(enable){
@@ -448,22 +467,26 @@ function setupBoard(enable){
 
 function setTurnInfo(inTxt, inClass){
 	$('#pTurnInfo').empty();
-	let span = $('<span />').attr({'className': inClass, 'html': inTxt });
+	let span = $('<span />').addClass(inClass).html(inTxt);
 	$('#pTurnInfo').append(span);
 }
 
-function setActiveUser(targetUser, users){
+function setActiveUser(activeUser, usersJSON){
+	let users = JSON.parse(usersJSON);
+	let activeUserJSON = JSON.stringify(activeUser);
+	console.log(`setActiveUser :: activeUserJSON=${activeUserJSON}, users[0]=${JSON.stringify(users[0].data)}`);
 	for(let i=0; i<users.length; i++){
-		if( users[i].data === targetUser ){
-			$('dvUser'+(i+1)).addClass('active');
+		if( JSON.stringify(users[i].data) == activeUserJSON ){
+			$('#dvUser'+(i+1)).addClass('active');
+			//console.log(`setActiveUser :: ${i+1} activated`);
 		} else {
-			$('dvUser'+(i+1)).removeClass('active');			
+			$('#dvUser'+(i+1)).removeClass('active');			
 		}
 	}//next user
 }
 
 function setupTurn(enable, msg){
-	//msg :: hopefully received: {gameID: , targetUser: user.strJSON, users: game.getUsersJSON(), remainingSec: }
+	//msg :: hopefully received: {gameID: , targetUser: user.strJSON, activeUser: user.strJSON, users: Array of {human:,data:,points:,time:}, remainingSec: }
 	//clear card detail
 	resetCardInfoDivs();
 	//enable/disable card selection
@@ -471,8 +494,8 @@ function setupTurn(enable, msg){
 	//refresh points
 	let users = msg["users"];
 	refreshPointsInTurn(users);
-	let targetUser = msg["targetUser"];
-	setActiveUser(targetUser, users);
+	let activeUser = msg["activeUser"];
+	setActiveUser(activeUser, users);
 	//write remaining secs
 	remainingSec(msg["remainingSec"]);	
 }
@@ -495,14 +518,19 @@ function stopTurn(msg){
 	refreshPointsInTurn(users);
 }
 
-function refreshPointsInTurn(users){
+function refreshPointsInTurn(inUsersJSON){
+	let users = JSON.parse(inUsersJSON);
+	//hopefully received: Array of {human:,data:,points:,time:}
 	for(let i=0; i<users.length; i++){
 		refreshPoints(i, users[i]);
 	}	
 }
 
 function refreshPoints(i, user){
-	$('#ptsBoard'+(i+1)).html(user.points);
+	//hopefully received: Array of {human:,data:,points:,time:}
+	let dvid = '#ptsBoard'+(i+1);
+	$(dvid).html(user.points);
+	console.log(`refreshPoints :: i=${i}, dvid=${dvid} -> ${user.points} pts`);
 }
 
 

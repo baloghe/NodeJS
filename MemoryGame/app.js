@@ -66,7 +66,11 @@ function enumUsers(gid){
 }
 
 function getSocketArray(gid){
-	const clients = Array.from(io.sockets.adapter.rooms.get(gid));
+	let s = io.sockets.adapter.rooms.get(gid);
+	if(s==null){
+		return [];
+	}
+	const clients = Array.from( s );
 	//console.log(`getSocketArray :: gid=${gid}, typeof clients = ${typeof clients}`);
 	let c=[];
 	for (const clientId of clients ) {
@@ -373,7 +377,8 @@ io.sockets.on('connection', function (socket) {
 						linearPosition: lp,
 						cardInfo: ci.info,
 						foundPair: ci.foundPair,
-						pair: ci.pair
+						pair: ci.pair,
+						users: ci.foundPair ? game.getUsersJSON() : null
 					};
 		socket.emit('showCard', JSON.stringify(msg));
 		socket.broadcast.to(gid).emit('showCard', JSON.stringify(msg));
@@ -408,8 +413,10 @@ io.sockets.on('connection', function (socket) {
 		
 		let msg = {gameID: gid, users: game.getUsersJSON()};
 		let socket = getSocketArray(gid)[0];
-		socket.emit('stopTurn', JSON.stringify(msg));
-		socket.broadcast.to(gid).emit('stopTurn', JSON.stringify(msg));
+		if(socket != null){
+			socket.emit('stopTurn', JSON.stringify(msg));
+			socket.broadcast.to(gid).emit('stopTurn', JSON.stringify(msg));
+		}
 	}
 	
 	function processStartTurn(gid){
@@ -419,7 +426,7 @@ io.sockets.on('connection', function (socket) {
 		console.log(`processStartTurn :: gid=${gid}, game.getActualUser=${usr.data}`);
 		if(usr.human){
 			//Human plays
-			let msg = {gameID: gid, targetUser: usr.data, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
+			let msg = {gameID: gid, targetUser: usr.data, activeUser: usr.data, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
 			let arr = getSocketArray(gid);
 			for(const s of arr){
 				console.log(`  usr.strJSON=${usr.data}, s.user.strJSON=${s.user.strJSON}`);
