@@ -54,6 +54,26 @@ var Constants = (function(){
 			return _waitSec[opt];
 		}
 		
+		this.getDeckSizeSel = function(val){
+			for(const key in _deckSize){
+				const act = _deckSize[key];
+				if(val==act){
+					return key;
+				}
+			}
+			return null;
+		}
+		
+		this.getLimitThinkingTimeSel = function(val){
+			for(const key in _waitSec){
+				const act = _waitSec[key];
+				if(val==act){
+					return key;
+				}
+			}
+			return null;
+		}
+		
 	}
 
 	return Constants;
@@ -115,6 +135,10 @@ var Game = (function() {
 		this.getLimitThinkingTime = function(){return CONSTANTS.getLimitThinkingTime(_gameConstants.limitThinkingTime);};
 		this.computerPlayerAllowed = function(){return _gameConstants.computerPlayer;};
 		this.getMaxHumanPlayers = function(){return parseInt(_gameConstants.maxHumanPlayers);};
+		
+		//for GUI
+		this.getNumCardsSel = function(){return _gameConstants.numCards;};
+		this.getLimitThinkingTimeSel = function(){return _gameConstants.limitThinkingTime;};
 		
 		this.serverPreInit = function(cardInfoArr){
 			//create deck by selecting pictures and form pairs of cards

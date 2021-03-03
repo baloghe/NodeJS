@@ -113,6 +113,17 @@ var SWP = (function(){
 				console.log(`ERROR: showCard / wrong game id, current gid=${CLIENT_GAME.getGameID()}`);
 			}
 		});
+
+		SOCKET.on('gameOver', function(data) {
+			console.log(`gameOver (received) :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , users: game.getUsersJSON()}
+			if(msg["gameID"] === CLIENT_GAME.getGameID()){
+				gameOver(msg);
+			} else {
+				console.log(`ERROR: gameOver / wrong game id, current gid=${CLIENT_GAME.getGameID()}`);
+			}
+		});
+		
 		
 		
 		

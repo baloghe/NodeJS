@@ -238,10 +238,11 @@ function gameSettingsFinalized(inGameConstants){
 	//logically
 	CLIENT_GAME.setConstants(inGameConstants);
 	Application.state = 'WAIT_FOR_START';
+	console.log(`  getNumCardsSel()=${CLIENT_GAME.getNumCardsSel()}, getLimitThinkingTimeSel()=${CLIENT_GAME.getLimitThinkingTimeSel()}`);
 	
 	//on UI
-	$('#setNumCards').val(CLIENT_GAME.getNumCards());
-	$('#setLimitThinkingTime').val(CLIENT_GAME.getLimitThinkingTime());
+	$('#setNumCards').val(CLIENT_GAME.getNumCardsSel());
+	$('#setLimitThinkingTime').val(CLIENT_GAME.getLimitThinkingTimeSel());
 	$('#chkComputerPlayer').prop('checked', CLIENT_GAME.computerPlayerAllowed());
 	$('#setMaxHumanPlayers').val(CLIENT_GAME.getMaxHumanPlayers());
 	
@@ -393,11 +394,15 @@ function hideCard(linPos, forever){
 function showCard(msg){
 	let idx = msg["linearPosition"];
 	let cinf = msg["cardInfo"];
+	if(cinf==null){
+		console.log(`showCard :: idx=${idx} -> no card info provided => no right to flip this card!!`);
+		return;
+	}
 	let hasPic = !(cinf.url==null);
 	console.log(`showCard :: idx=${idx}, hasPic=${hasPic}, cardID=${cinf.cardID}, foundPair: ${msg["foundPair"]}`);
 	
-	//logically
-	//? not necessarily
+	//immediately unbind Click event!
+	$('#dvCard'+idx).unbind( "click" );
 	
 	//graphically
 	if(hasPic){
@@ -531,6 +536,38 @@ function refreshPoints(i, user){
 	let dvid = '#ptsBoard'+(i+1);
 	$(dvid).html(user.points);
 	console.log(`refreshPoints :: i=${i}, dvid=${dvid} -> ${user.points} pts`);
+}
+
+function gameOver(msg){
+	Application.state = 'GAME_FINISHED';
+	
+	//extract results
+	let users = JSON.parse(msg["users"]);
+	let elems = users
+					.map(e => {return {"avatarSrc": JSON.parse(e.data).avatar, "name": JSON.parse(e.data).name, "points": e.points, "time": e.time};})
+					.sort(function(a,b){
+							if(a.points > b.points){
+								return -1;
+							} else if(a.points == b.points && a.time < b.time){
+								return -1;
+							} else return 1;
+						}
+					)
+					;
+	
+	//render results
+	let task = {"elems": elems};
+	let html=$.templates('#tmplResults').render(task);
+	$('#dvResults').html(html);
+	
+	updateUI();
+	console.log('Game over...');
+	
+	$('#btnNewGame').click(function(){
+		Application.state = 'CONNECTED';
+		updateUI();
+		$('#btnNewGame').unbind("click");
+	});
 }
 
 
