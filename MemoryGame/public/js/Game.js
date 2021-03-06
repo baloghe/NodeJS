@@ -95,10 +95,11 @@ var Game = (function() {
 		let _gameConstantsSet = false;
 		let _deck = null;
 		let _users = null; //Array of {human: true/false, data: JSON string, points: int, time: 0}
-		let _firstGuess = null; //cardID
+		let _firstGuess = null; //{linearPosition, cardID}, 
 		let _guessStack = null; //Array of {linearPosition, cardID}, unshifted with new guess
 		let _userPointer = null;
 		let _cardsFound = null;
+		let _computerStrength = null; //integer :: how many cards are visible for the computer player on top of _guessStack
 		
 		let _countDown = null;
 		
@@ -167,6 +168,7 @@ var Game = (function() {
 			_guessStack = []; 
 			_userPointer = 0;
 			_cardsFound = 0;
+			_computerStrength = 4; //this many last flipped cards are visible for Computer player
 			console.log(`Game.serverStartGame :: _users[_userPointer]=${JSON.parse(_users[_userPointer].data).name}`);
 		};
 		
@@ -234,6 +236,7 @@ var Game = (function() {
 		this.getGuessClient = function(){return _clientGuess;};
 		
 		this.showCard = function(inLinPos, inUser){
+			console.log(`Game.showCard :: inLinPos=${inLinPos}, inUser=${inUser}`);
 			//someone made a guess
 			let ret = {
 						response: '',
@@ -258,12 +261,12 @@ var Game = (function() {
 			let cid = ret.info.cardID;
 			_guessStack.unshift({linearPosition: inLinPos, cardID: cid});
 			if(_firstGuess==null){
-				_firstGuess = cid;
+				_firstGuess = {linearPosition: inLinPos, cardID: cid};
 				ret.response = 'FIRST_GUESS_VALID';
 				return ret;
 			} else {
 				ret.response = 'SECOND_GUESS_VALID';
-				ret.foundPair = ( _firstGuess==cid );
+				ret.foundPair = ( _firstGuess.cardID==cid );
 				if( ret.foundPair ){
 					//pair found => user remains in turn and points augmented
 					ret.foundPair = true;
@@ -271,6 +274,7 @@ var Game = (function() {
 					ret.pair.push(_guessStack[1]);
 					_users[_userPointer].points++;
 					_cardsFound += 2;
+					_deck.pairFound(_firstGuess.cardID, inUser);
 				} else {
 					//different cards found => advance pointer
 					ret.roundFinished = true;					
@@ -300,6 +304,58 @@ var Game = (function() {
 			}
 		};
 		
+		this.getComputerChoice = function(){
+			/* computer is allowed to consult the top N==_computerStrength cards in _guessStack :: Array of {linearPosition, cardID}
+				if the stack contains an undiscovered pair, computer will choose the necessary cards
+				if it doesn't, a random card will be chosen
+			*/
+			let activeCards = _deck.getActiveCardPos();
+			console.log(`getComputerChoice :: activeCards.length=${activeCards.length}`);
+			let pos = -1;
+			//First to play => select a random card
+			if(_guessStack.length <= 0){
+				pos = getRandomInt(0, activeCards.length-1);
+				console.log(`   First to play => select a random card pos=${pos}`);
+				return activeCards[pos];
+			}
+			
+			//At least one guess has been made
+			for( let i=0; i < _guessStack.length && i < _computerStrength; i++ ){
+				let ii = _guessStack[i];
+				for( let j = 0; j < i-1; j++ ){
+					let jj = _guessStack[j];
+					if(jj.cardID == ii.cardID
+						&& jj.linearPosition != ii.linearPosition
+						&& (   (!_deck.found(jj.linearPosition))
+						    || (!_deck.found(ii.linearPosition))
+							)
+						&& (   _firstGuess==null
+							|| (   _firstGuess.linearPosition != ii.linearPosition
+							    && _firstGuess.linearPosition != jj.linearPosition
+								)
+							)
+					){
+						if(_firstGuess != null && _firstGuess.cardID != ii.cardID){
+							pos = ii.linearPosition;
+							console.log(`   (i,j)=(${i},${j}), _firstGuess=${_firstGuess}, ii.cardID=${ii.cardID} -> pos=${pos}`);
+							return activeCards[pos];
+						} else {
+							pos = jj.linearPosition;
+							console.log(`   (i,j)=(${i},${j}), _firstGuess=${_firstGuess}, ii.cardID=${ii.cardID} -> pos=${pos}`);
+							return activeCards[pos];
+						}
+					}//endif: pair found
+				}//next j
+			}//next i
+			
+			//no pair in last N observations => make a random guess
+			pos = getRandomInt(0, activeCards.length-1);
+			while(_firstGuess != null && activeCards[pos] == _firstGuess.linearPosition){
+				pos = getRandomInt(0, activeCards.length-1);
+			}
+			console.log(`   no pair => make a random guess -> pos=${pos}`);
+			return activeCards[pos];
+		};
     }
 
     return Game;
@@ -397,6 +453,12 @@ function shuffleArray(array) {
     }
 }
 
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var Deck = (function() {
 	function Deck(inSize, isEmpty, cardInfoArray) {
 		
@@ -467,6 +529,35 @@ var Deck = (function() {
 					value: _deck[i++]
 				})
 			};
+		};
+		
+		this.pairFound = function(cardID, user){
+			for(const c of this.cards()){
+				let thisID = c.info().getCardID();
+				if( thisID == cardID ){
+					c.found(true);
+					c.foundBy(user);
+				}//endif
+			}//next card
+		};
+		
+		this.getActiveCardPos = function(){
+			let ret = [];
+			for(const c of this.cards()){
+				if( !c.found() ){
+					let thisLP = c.getLinearPos();
+					ret.push(thisLP);
+				}//endif
+			}//next card
+			return ret;
+		};
+		
+		this.found = function(linPos){
+			if(linPos < 0 || linPos >= _deck.length){
+				return false;
+			} else {
+				return _deck[linPos].found();
+			}
 		};
     }
 	

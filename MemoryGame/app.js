@@ -301,7 +301,8 @@ io.sockets.on('connection', function (socket) {
 		let game = gameRegistry[inGameId].gameObj;
 		let users = gameRegistry[inGameId].users;
 		console.log(`processStartGame :: inGameId=${inGameId}, max players: ${game.getMaxHumanPlayers()}, available players: ${users.size}`);
-		if(users.size <= 1){
+		let comp = null;
+		if(users.size <= 1 && (!game.computerPlayerAllowed())){
 			//TBD: game initiator is left alone => equivalent to cancel game against his will
 			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS');
@@ -309,23 +310,30 @@ io.sockets.on('connection', function (socket) {
 			return;
 		} else if(users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed()){
 			//TBD: add computer to the users
-		} else {
-			//TBD: crop users array at getMaxHumanPlayers()
-			//console.log(`  Array.from(users).length=${Array.from(users).length}`);
-			let usr = Array.from(users)
-					.map(u => {return {"human": true, "data": u};})
-					.reduce((a,u,i) => {
-							if(i<game.getMaxHumanPlayers()){
-								a.push(u);
-								//console.log(`  user added: ${u}`);
-							}
-							return a;
-						}
-						,[]
-					);
-			//console.log(`  usr: ${typeof usr}, length: ${usr.length}`);
-			game.setUsers(usr,true);
+			comp = new User('Computer', 'https://image.flaticon.com/icons/png/128/2432/2432846.png');
+			console.log(`  Computer should be added to users`);
+		} //else {
+			
+		//TBD: crop users array at getMaxHumanPlayers()
+		//console.log(`  Array.from(users).length=${Array.from(users).length}`);
+		let usr = Array.from(users)
+				.map(u => {return {"human": true, "data": u};})
+				;
+		if(comp != null){
+			usr.push( {"human": false, "data": comp.strJSON} );
 		}
+		usr = usr.reduce((a,u,i) => {
+						if(i<game.getMaxHumanPlayers()){
+							a.push(u);
+							//console.log(`  user added: ${u}`);
+						}
+						return a;
+					}
+					,[]
+				);
+		//console.log(`  usr: ${typeof usr}, length: ${usr.length}`);
+		game.setUsers(usr,true);
+		//}
 		
 		//finish initialization
 		game.serverStartGame();
@@ -358,15 +366,21 @@ io.sockets.on('connection', function (socket) {
 	*/
 	
 	socket.on('showCard', function(data) {
-		console.log(`showCard by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'}, data=${data}`);
+		//console.log(`showCard by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'}, data=${data}`);
 		
 		let parsedData = JSON.parse(data);
 		let gid = parsedData["gameID"];
 		let lp = parsedData["linearPosition"];
-		
 		let game = gameRegistry[gid].gameObj;
-		
 		let ci = game.showCard( lp, socket.user.strJSON );
+		
+		console.log(`showCard by user ${socket.user && socket.user.name ? socket.user.name : 'UNKNOWN'}, lp=${lp}`);
+		
+		processShowCard(gid, lp, ci);
+	});
+	
+	function processShowCard(gid, lp, ci){
+		let game = gameRegistry[gid].gameObj;
 		
 		if(ci.response == 'ERR_GUESS_INVALID_LINPOS' || ci.response == 'ERR_GUESS_INVALID_USER'){
 			socket.emit(ci.response);
@@ -383,6 +397,10 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('showCard', JSON.stringify(msg));
 		socket.broadcast.to(gid).emit('showCard', JSON.stringify(msg));
 		
+		if(ci.response === 'SECOND_GUESS_VALID' && ci.foundPair){
+			console.log(` PAIR found: ${ci.pair[0].cardID} at ${ci.pair[0].linearPosition} , ${ci.pair[1].linearPosition}`);
+		}
+		
 		//if turn / game finished: perform respective actions
 		if(ci.gameFinished){
 			processGameOver(gid);
@@ -395,8 +413,8 @@ io.sockets.on('connection', function (socket) {
 					processStartTurn(gid);
 				}, delay
 			);
-		}
-	});
+		}//endif turn / game finished
+	}
 	
 	function processGameOver(gid){
 		//finish game and inform users in room
@@ -429,7 +447,7 @@ io.sockets.on('connection', function (socket) {
 			let msg = {gameID: gid, targetUser: usr.data, activeUser: usr.data, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
 			let arr = getSocketArray(gid);
 			for(const s of arr){
-				console.log(`  usr.strJSON=${usr.data}, s.user.strJSON=${s.user.strJSON}`);
+				//console.log(`  usr.strJSON=${usr.data}, s.user.strJSON=${s.user.strJSON}`);
 				if( usr.data === s.user.strJSON ){
 					//great, this user's turn
 					msg.targetUser = usr.data;
@@ -440,13 +458,52 @@ io.sockets.on('connection', function (socket) {
 					io.to(s.id).emit('watchTurn', JSON.stringify(msg));
 				}
 			}//next socket
+			//set game countdown
+			let ivl = initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);
+			game.setCountDown(ivl);
 		} else {
 			//Computer plays
-			//TBD...
+			//all Humans should wait
+			let msg = {gameID: gid, targetUser: usr.data, activeUser: usr.data, users: game.getUsersJSON(), remainingSec: game.getLimitThinkingTime()};
+			let arr = getSocketArray(gid);
+			for(const s of arr){
+				msg.targetUser = s.user.strJSON;
+				io.to(s.id).emit('watchTurn', JSON.stringify(msg));
+			}
+			
+			//start clock for computer too
+			let ivl = initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);
+			game.setCountDown(ivl);
+			
+			//two second later Computer makes his first choice, then his next choice, then stop turn
+			setTimeout(
+				function(){
+					processComputerChoice(gid, usr);
+					setTimeout(
+						function(){
+							processComputerChoice(gid, usr);
+							setTimeout(
+								function(){
+									processStopTurn(gid);
+									processStartTurn(gid);
+								}
+								,1000
+							);
+						}
+						,2000
+					);
+				}
+				,2000
+			);
+			
 		}//endif
-		
-		let ivl = initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);
-		game.setCountDown(ivl);
+	}
+	
+	function processComputerChoice(gid, usr){
+		let game = gameRegistry[gid].gameObj;
+		let lp = game.getComputerChoice();
+		let ci = game.showCard( lp, usr.data );
+		processShowCard(gid, lp, ci);
 	}
 
 	/* confirm connection */
