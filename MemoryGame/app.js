@@ -405,6 +405,7 @@ io.sockets.on('connection', function (socket) {
 		if(ci.gameFinished){
 			processGameOver(gid);
 		} else if(ci.roundFinished){
+			//rundFinished means user has not found a pair. Whenever a pair is found, Game considers the round is going on 
 			//may delay with a few secs IF it was triggered by a second guess
 			let delay = (ci.response === 'SECOND_GUESS_VALID' ? 2000 : 0);
 			setTimeout(function(){
@@ -413,10 +414,15 @@ io.sockets.on('connection', function (socket) {
 					processStartTurn(gid);
 				}, delay
 			);
+		} else if(ci.response === 'SECOND_GUESS_VALID' && ci.foundPair){
+			//Game countdown has to be reset
+			let ivl = initializeCountDown(null, gid, game.getLimitThinkingTime()-1, processStopTurn);
+			game.setCountDown(ivl);
 		}//endif turn / game finished
 	}
 	
 	function processGameOver(gid){
+		console.log(`processGameOver :: gid=${gid}`);
 		//finish game and inform users in room
 		let game = gameRegistry[gid].gameObj;
 		let msg = {gameID: gid, users: game.getUsersJSON()};
@@ -425,6 +431,7 @@ io.sockets.on('connection', function (socket) {
 	}
 	
 	function processStopTurn(gid){
+		console.log(`processStopTurn :: gid=${gid}`);
 		//finish round
 		let game = gameRegistry[gid].gameObj;
 		game.clearCountDown();
@@ -481,13 +488,21 @@ io.sockets.on('connection', function (socket) {
 					processComputerChoice(gid, usr);
 					setTimeout(
 						function(){
-							processComputerChoice(gid, usr);
+							let secondGuess = processComputerChoice(gid, usr);
 							setTimeout(
 								function(){
-									processStopTurn(gid);
-									processStartTurn(gid);
+									if(secondGuess.gameFinished){
+										processGameOver(gid);
+									} else if(secondGuess.roundFinished){
+										//nothing to do, a 
+										//console.log(`  Computer finished round => processStopTurn issued`);
+										//processStopTurn(gid);										
+									} else {
+										//Computer found a pair => should play again
+										processStartTurn(gid);
+									}
 								}
-								,1000
+								,2000
 							);
 						}
 						,2000
@@ -504,6 +519,8 @@ io.sockets.on('connection', function (socket) {
 		let lp = game.getComputerChoice();
 		let ci = game.showCard( lp, usr.data );
 		processShowCard(gid, lp, ci);
+		//return if Computer finished round / game
+		return {"gameFinished": ci.gameFinished, "roundFinished": ci.roundFinished};
 	}
 
 	/* confirm connection */

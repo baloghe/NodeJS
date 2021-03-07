@@ -13,6 +13,7 @@ function updateUI(){
 		$('#btnConnect').prop('disabled', false);
 		$('#btnPlayAgainstComputer').prop('disabled', false);
 		$('#scStartGame').removeClass('hide');
+		$('#tblLoginButtons').removeClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');

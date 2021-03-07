@@ -294,13 +294,16 @@ var Game = (function() {
 		};
 		
 		this.setCountDown = function(ivl){
+			this.clearCountDown();
 			_countDown = ivl;
+			console.log(`Game :: countDown set`);
 		};
 		
 		this.clearCountDown = function(){
 			if( _countDown != null ){
 				clearInterval(_countDown);
 				_countDown = null;
+				console.log(`Game :: countDown cleared`);
 			}
 		};
 		
@@ -319,22 +322,45 @@ var Game = (function() {
 				return activeCards[pos];
 			}
 			
+			//test: see what's in available stack
+			let printout=[];
+			for( let i=0; i < _guessStack.length && i < _computerStrength; i++ ){
+				printout.push("["+_guessStack[i].cardID+" @"+_guessStack[i].linearPosition+": "+_deck.found(_guessStack[i].linearPosition)+"]");
+			}
+			console.log(`  stack: ${printout.join(', ')}`);
 			//At least one guess has been made
 			for( let i=0; i < _guessStack.length && i < _computerStrength; i++ ){
 				let ii = _guessStack[i];
-				for( let j = 0; j < i-1; j++ ){
+				for( let j = 0; j < i; j++ ){
 					let jj = _guessStack[j];
-					if(jj.cardID == ii.cardID
+					if(
+						//different cards with same ID
+						   jj.cardID == ii.cardID
 						&& jj.linearPosition != ii.linearPosition
-						&& (   (!_deck.found(jj.linearPosition))
-						    || (!_deck.found(ii.linearPosition))
-							)
+						//none of them found yet
+						&& (!_deck.found(jj.linearPosition))
+						&& (!_deck.found(ii.linearPosition))
+						/*
 						&& (   _firstGuess==null
 							|| (   _firstGuess.linearPosition != ii.linearPosition
 							    && _firstGuess.linearPosition != jj.linearPosition
 								)
 							)
+						*/
 					){
+						if(_firstGuess==null){
+							pos = ii.linearPosition;
+							console.log(`   first guess :: (i,j)=(${i},${j}), _firstGuess=NULL, ii.cardID=${ii.cardID} -> pos=${pos}`);
+							return pos;
+						} else {
+							pos = jj.linearPosition == _firstGuess.linearPosition
+								? ii.linearPosition
+								: jj.linearPosition
+								;
+							console.log(`   second guess :: (i,j)=(${i},${j}), _firstGuess=${_firstGuess.linearPosition}, jj:=${jj.cardID} @${jj.linearPosition}, ii:=${ii.cardID} @${ii.linearPosition} -> pos=${pos}`);
+							return pos;
+						}
+						/*
 						if(_firstGuess != null && _firstGuess.cardID != ii.cardID){
 							pos = ii.linearPosition;
 							console.log(`   (i,j)=(${i},${j}), _firstGuess=${_firstGuess}, ii.cardID=${ii.cardID} -> pos=${pos}`);
@@ -344,6 +370,7 @@ var Game = (function() {
 							console.log(`   (i,j)=(${i},${j}), _firstGuess=${_firstGuess}, ii.cardID=${ii.cardID} -> pos=${pos}`);
 							return activeCards[pos];
 						}
+						*/
 					}//endif: pair found
 				}//next j
 			}//next i
