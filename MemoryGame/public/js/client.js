@@ -17,19 +17,19 @@ function updateUI(){
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
-	} else if( Application.state === 'JOIN_GAME' || Application.state === 'START_NEW_GAME' ){
+	} else if( Application.state === 'JOIN_GAME' || Application.state === 'START_NEW_GAME' || Application.state === 'PLAY_AGAINST_COMPUTER'){
 		$('#btnConnect').prop('disabled', true);
 		$('#btnPlayAgainstComputer').prop('disabled', true);
 		$('#scStartGame').removeClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
-	} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' || Application.state === 'WAIT_FOR_START' ){
+	} else if( Application.state === 'SET_GAME' || Application.state === 'WAIT_SETTING_GAME' || Application.state === 'WAIT_FOR_START' || Application.state === 'PRACTICE' ){
 		$('#tblLoginButtons').addClass('hide');
 		$('#scGameSettings').removeClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
-		enableSettings( Application.state === 'SET_GAME' );
+		enableSettings( Application.state === 'SET_GAME' || Application.state === 'PRACTICE', Application.state === 'PRACTICE' );
 		showGameSettingButtons( CLIENT_GAME.currentUser.strJSON == CLIENT_GAME.getInitiatedBy().strJSON );
 		if( Application.state === 'WAIT_FOR_START' ){
 			$('#pRemainingSecs').removeClass('hide');
@@ -69,12 +69,18 @@ function setNameAvatar(inName, inAvatarSrc){
 }
 
 //enables/disables game settings options
-function enableSettings(inEnable){
+function enableSettings(inEnable, inPracticeMode){
+	inPracticeMode = inPracticeMode || false;
+	//console.log(`enableSettings :: inPracticeMode=${inPracticeMode}`);
 	$('#setNumCards').prop('disabled', (!inEnable));
 	$('#setLimitThinkingTime').prop('disabled', (!inEnable));
-	$('#chkComputerPlayer').prop('disabled', (!inEnable));
-	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
-	$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
+	$('#chkComputerPlayer').prop('disabled', ((!inEnable)) || inPracticeMode);
+	$('#setMaxHumanPlayers').prop('disabled', ((!inEnable)) || inPracticeMode);
+	//$('#setMaxHumanPlayers').prop('disabled', (!inEnable));
+	
+	//Practice mode: preset obvious options
+	$('#chkComputerPlayer').prop('checked', true);
+	$('#setMaxHumanPlayers').val("1");
 }
 
 //shows necessary buttons based on role
@@ -137,6 +143,20 @@ $( document ).ready(function(){
 	/* Avatar chooser popup / Start new game */
 	$('#btnStartNewGame').click(function(e){
 		Application.state = 'START_NEW_GAME';
+		updateUI();
+		//show avatar chooser IF necessary
+		if(Application.hasIdentity){
+			CLIENT_SOCKET.loginToServer(null);
+		} else {
+			$('#pGameIdInput').addClass('hide');
+			$('#pGameIdInput').prop('required',false);
+			$('#dvAvChooser').popup('show');
+		}
+	});
+	
+	/* Avatar chooser popup / Start new game */
+	$('#btnPlayAgainstComputer').click(function(e){
+		Application.state = 'PLAY_AGAINST_COMPUTER';
 		updateUI();
 		//show avatar chooser IF necessary
 		if(Application.hasIdentity){
@@ -281,7 +301,12 @@ function thisUserCreatedGame(gameData){
 	processCreateGame(gameData, true);
 	
 	//Set application state
-	Application.state = 'SET_GAME';
+	let prvState = Application.state;
+	if(prvState === 'PLAY_AGAINST_COMPUTER'){
+		Application.state = 'PRACTICE';
+	} else {
+		Application.state = 'SET_GAME';
+	}
 	Application.hasIdentity = true;
 	updateUI();
 }

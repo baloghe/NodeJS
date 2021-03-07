@@ -42,6 +42,10 @@ var Constants = (function(){
 		
 		this.getWaitSecBeforeStart = function (){return 10;}
 		
+		this.getWaitSecBeforePractice = function (){return 2;}
+		
+		this.getWaitSecBetweenMoves = function (){return 2;}
+		
 		this.getLayout = function(pairs){
 			return _layout[pairs];
 		}
@@ -87,9 +91,10 @@ var Application = {
 }
 
 var Game = (function() {
-    function Game(inGameID, inInitiatedBy) {
+    function Game(inGameID, inInitiatedBy, inPracticeMode) {
 		let _gameID = inGameID;
 		let _initiatedBy = inInitiatedBy;
+		let _isPracticeMode = inPracticeMode;
 		let _waitingList = new Set();
 		let _gameConstants = null;
 		let _gameConstantsSet = false;
@@ -104,6 +109,8 @@ var Game = (function() {
 		let _countDown = null;
 		
 		let _clientGuess = [];
+		
+		console.log(`Game set up with id=${_gameID}, inPracticeMode=${_isPracticeMode}`);
 		
         this.getGameID = function() {
             return _gameID;
@@ -120,9 +127,16 @@ var Game = (function() {
 			//	maxHumanPlayers:	
 			_gameConstants = gc;
 			_gameConstantsSet = true;
+			
+			if(_isPracticeMode){
+				_gameConstants.computerPlayer = true;
+				_gameConstants.maxHumanPlayers = 1;
+			}
 		};
 		this.isConstantsSet = function(){return _gameConstantsSet;};
 		this.getGameConstantsJSON = function(){return _gameConstants;};
+		
+		this.isPracticeMode = function(){return _isPracticeMode;};
 		
 		this.addUserToWaitingList = function(u){
 			_waitingList.add(u);

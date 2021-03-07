@@ -108,20 +108,22 @@ io.sockets.on('connection', function (socket) {
 		let gid = msg["gameId"];
 		
 		//check if initiator really initiated the game
-		let init = gameRegistry[gid].gameObj.getInitiatedBy();
+		let game = gameRegistry[gid].gameObj;
+		let init = game.getInitiatedBy();
 		if( init.strJSON == socket.user.strJSON ){
 		//if so, set game constants to this game
 			console.log(`  init.strJSON==socket.user.strJSON`);
 			let gc = msg["gameConstants"];
-			gameRegistry[gid].gameObj.setConstants( gc );
+			game.setConstants( gc );
 			//inform others (and self) and start countdown
 			console.log(`user list in room [${gid}]: ${enumUsers(gid)}`);
 			socket.broadcast.to(gid).emit('gameSettingsFinalized', JSON.stringify( gc ));
 			socket.emit('gameSettingsFinalized', JSON.stringify( gc ));
 			console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
-			
-			initializeCountDown(socket, gid, CONSTANTS.getWaitSecBeforeStart()-1, processStartGame);//in fact the first run will occur a second later
-			console.log(`  interval set for ${gameRegistry[gid].gameObj.secRemainingToStart} secs`);
+			console.log(`  isPracticeMode=${game.isPracticeMode()}`);
+			let waitBefStart = (game.isPracticeMode() ? CONSTANTS.getWaitSecBeforePractice()-1 : CONSTANTS.getWaitSecBeforeStart()-1);
+			initializeCountDown(socket, gid, waitBefStart, processStartGame);//in fact the first run will occur a second later
+			console.log(`  interval set for ${waitBefStart} secs`);
 		
 			//set up game on server side
 			processSetupGame(gid);
@@ -187,8 +189,8 @@ io.sockets.on('connection', function (socket) {
 		gameRegistry[gid].gameObj.secRemainingToStart = numSec;
 		socket = socket || getSocketArray(gid)[0]; //either game initiator or someone from the same room
 		const ivl = setInterval(() => {
-			let s = JSON.stringify({sec: numSec});
-			socket.broadcast.to(gid).emit('remainingSec', s );
+			let s = JSON.stringify({"gameID": gid, sec: numSec});
+			socket.broadcast.to(gid).emit('remainingSec', s);
 			socket.emit('remainingSec', s );
 			numSec--;
 			//console.log(`  remainingSec broadcasted, left: ${s} s, gid=${gid}`);
@@ -243,7 +245,7 @@ io.sockets.on('connection', function (socket) {
 	//TBD: make it ASYNC in order to prevent two different users create the same game at the same time
 	function checkLogin(loginMode, loginGameId, inUser){
 		//console.log(`checkLogin: loginMode=${loginMode}, loginGameId: ${loginGameId}, inUser: ${inUser.name}`);
-		if( loginMode==='START_NEW_GAME' ){
+		if( loginMode==='START_NEW_GAME' || loginMode==='PLAY_AGAINST_COMPUTER'){
 			//create new game ID
 			let gid = getRandomString(6);
 			//console.log(`    gid=${gid}`);
@@ -256,7 +258,7 @@ io.sockets.on('connection', function (socket) {
 			socket.join(gid);
 
 			//create and populate game registry entry
-			gameRegistry[gid] = {gameObj: new Game(gid,inUser), users: new Set()};
+			gameRegistry[gid] = {gameObj: new Game(gid, inUser, loginMode==='PLAY_AGAINST_COMPUTER'), users: new Set()};
 			gameRegistry[gid].gameObj.state = 'CREATED';
 			gameRegistry[gid].users.add(inUser.strJSON);
 			//console.log(`JSON(gameRegistry[gid])=${JSON.stringify(gameRegistry[gid])}, size=${gameRegistry[gid].users.size()}`);
@@ -302,28 +304,36 @@ io.sockets.on('connection', function (socket) {
 		let users = gameRegistry[inGameId].users;
 		console.log(`processStartGame :: inGameId=${inGameId}, max players: ${game.getMaxHumanPlayers()}, available players: ${users.size}`);
 		let comp = null;
-		if(users.size <= 1 && (!game.computerPlayerAllowed())){
+		if(users.size <= 1 && (!game.computerPlayerAllowed()) && (!game.isPracticeMode()) ){
 			//TBD: game initiator is left alone => equivalent to cancel game against his will
 			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS');
 			processCancelGame(inGameId);
 			return;
-		} else if(users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed()){
+		} else if(   (users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed())
+			      || (game.isPracticeMode()) ){
 			//TBD: add computer to the users
 			comp = new User('Computer', 'https://image.flaticon.com/icons/png/128/2432/2432846.png');
 			console.log(`  Computer should be added to users`);
-		} //else {
+		} 
 			
 		//TBD: crop users array at getMaxHumanPlayers()
 		//console.log(`  Array.from(users).length=${Array.from(users).length}`);
-		let usr = Array.from(users)
-				.map(u => {return {"human": true, "data": u};})
-				;
+		let usr = [];
+		if(game.isPracticeMode()){
+			usr = [game.getInitiatedBy().strJSON];
+			console.log(`  Practice mode => initiator added only: ${usr[0]}`);
+		} else {
+			usr = Array.from(users);
+		}
+		usr = usr.map(u => {return {"human": true, "data": u};});
+		
 		if(comp != null){
 			usr.push( {"human": false, "data": comp.strJSON} );
 		}
+		console.log(`  usr[1]=${usr[1]}`);
 		usr = usr.reduce((a,u,i) => {
-						if(i<game.getMaxHumanPlayers()){
+						if(i<game.getMaxHumanPlayers() || game.isPracticeMode()){
 							a.push(u);
 							//console.log(`  user added: ${u}`);
 						}
@@ -407,7 +417,7 @@ io.sockets.on('connection', function (socket) {
 		} else if(ci.roundFinished){
 			//rundFinished means user has not found a pair. Whenever a pair is found, Game considers the round is going on 
 			//may delay with a few secs IF it was triggered by a second guess
-			let delay = (ci.response === 'SECOND_GUESS_VALID' ? 2000 : 0);
+			let delay = (ci.response === 'SECOND_GUESS_VALID' ? CONSTANTS.getWaitSecBetweenMoves()*1000 : 0);
 			setTimeout(function(){
 					processStopTurn(gid);
 					//next user in charge
@@ -502,13 +512,13 @@ io.sockets.on('connection', function (socket) {
 										processStartTurn(gid);
 									}
 								}
-								,2000
+								,CONSTANTS.getWaitSecBetweenMoves()*1000
 							);
 						}
-						,2000
+						,CONSTANTS.getWaitSecBetweenMoves()*1000
 					);
 				}
-				,2000
+				,CONSTANTS.getWaitSecBetweenMoves()*1000
 			);
 			
 		}//endif

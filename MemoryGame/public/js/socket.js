@@ -59,7 +59,13 @@ var SWP = (function(){
 		SOCKET.on('remainingSec', function(data) {
 			//console.log(`remainingSec :: data=${data}`);
 			var s = JSON.parse(data)["sec"];
-			remainingSec(s);
+			var gid = JSON.parse(data)["gameID"];
+			var thisGid = CLIENT_GAME.getGameID();
+			if(gid != thisGid){
+				console.log(`ERROR: remainingSec received for gameID=${gid} but this is gameID=${thisGid}`);
+			} else {
+				remainingSec(s);
+			}
 		});
 
 		SOCKET.on('userDisconnected', function(data) {
