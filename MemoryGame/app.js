@@ -153,17 +153,33 @@ io.sockets.on('connection', function (socket) {
 		
 		let msg = JSON.parse( dataJSON );
 		let gid = msg["gameId"];
+		let game = gameRegistry[gid].gameObj;
+		let gameInitiator = game.getInitiatedBy().strJSON;
+		let usr = socket.user.strJSON;
 		
-		socket.broadcast.to(gid).emit('ERR_INITIATOR_CANCEL', msg);
-		socket.emit('ERR_INITIATOR_CANCEL', msg);
-		
-		processCancelGame(gid);
+		if(gameInitiator===usr){
+			processCancelGame(gid);
+		} else {
+			socket.emit('ERR_UNAUTHORIZED_CANCEL', dataJSON);
+		}
 	});
 	
 	function processCancelGame(gid){
-		//TBD!!!!!!!!!!
 		//everyone kicked out of room + inform and handle client side
-		console.log(`processCancelGame :: TBD!!!!!`);
+		console.log(`processCancelGame :: gameId=${gid}`);
+		let msg1 = JSON.stringify({gameId: gid, initiator: false});
+		let msg2 = JSON.stringify({gameId: gid, initiator: true});
+		//inform users
+		socket.broadcast.to(gid).emit('gameCancelled', msg1);
+		socket.emit('gameCancelled', msg2);
+		//force leave room
+		let arr = getSocketArray(gid);
+		for(const s of arr){
+			s.leave(gid);
+		}/*
+		io.sockets.clients(gid).forEach(function(s){
+			s.leave(gid);
+		});*/
 	}
 
 	/* user disconnected */

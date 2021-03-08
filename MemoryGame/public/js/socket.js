@@ -129,6 +129,16 @@ var SWP = (function(){
 				console.log(`ERROR: gameOver / wrong game id, current gid=${CLIENT_GAME.getGameID()}`);
 			}
 		});
+
+		SOCKET.on('gameCancelled', function(data) {
+			console.log(`gameCancelled (received) :: data=${data}`);
+			var msg = JSON.parse(data); //{gameID: , linearPosition: , cardInfo: , foundPair:, pair: }
+			if(msg["gameId"] === CLIENT_GAME.getGameID()){
+				gameCancelled(msg);
+			} else {
+				console.log(`ERROR: gameCancelled / wrong game id, current gid=${CLIENT_GAME.getGameID()}, received=${msg["gameId"]}`);
+			}
+		});
 		
 		
 		

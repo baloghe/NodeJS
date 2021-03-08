@@ -209,10 +209,7 @@ $( document ).ready(function(){
 		//TBD: initiator decides to call off the game
 		//	1) rollback locally to 'CONNECTED' but already having an identity
 		//	2) send to Server to kick out everyone of the room and destroy it completely
-		Application.state = 'CONNECTED';
 		CLIENT_SOCKET.cancelGame( CLIENT_GAME.getGameID() );
-		CLIENT_GAME = null;
-		updateUI();
 	});
 	
 	$('#btnLeaveGame').click(function(e){
@@ -221,6 +218,7 @@ $( document ).ready(function(){
 		//	2) send to Server to inform other users in room
 		Application.state = 'CONNECTED';
 		CLIENT_SOCKET.leaveGame( CLIENT_GAME.getGameID() );
+		gameLeft( CLIENT_GAME.getGameID() );
 		CLIENT_GAME = null;
 		updateUI();
 	});
@@ -231,6 +229,32 @@ $( document ).ready(function(){
 		,outline: true
 	});
 });
+
+function gameCancelled(msg){
+	let gid = msg["gameId"];
+	let initiator = msg["initiator"];
+	if(initiator){
+		$('#pConnResult').removeClass('error');
+		$('#pConnResult').addClass('success');
+		$('#pConnResult').html('Game (id: '+gid+') successfully canceled.');
+	} else {
+		$('#pConnResult').addClass('error');
+		$('#pConnResult').removeClass('success');
+		$('#pConnResult').html('Sorry, game (id: '+gid+') canceled by Initiator.');
+	}
+	Application.state = 'CONNECTED';
+	updateUI();
+	CLIENT_GAME = null;
+}
+
+function gameLeft(gid){
+	$('#pConnResult').removeClass('error');
+	$('#pConnResult').addClass('success');
+	$('#pConnResult').html('Game (id: '+gid+') successfully left.');
+	Application.state = 'CONNECTED';
+	updateUI();
+	CLIENT_GAME = null;
+}
 
 function updateProfileOnPage(inName, inAvatarSrc){
 	task = {tableHeaderClass: "tableHeader",
