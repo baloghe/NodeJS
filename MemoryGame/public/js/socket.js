@@ -140,7 +140,12 @@ var SWP = (function(){
 			}
 		});
 		
-		
+		///////    ERROR MESSAGES    ///////
+		SOCKET.on('ERROR', function(data) {
+			console.log(`ERROR (received) :: data=${data}`);
+			var msg = JSON.parse(data); //{error: }
+			handleError(msg.error);
+		});
 		
 		
 		/////////////////////////////////////

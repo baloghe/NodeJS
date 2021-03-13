@@ -2,7 +2,12 @@
 <html lang=en>
 <head>
 	<meta charset=utf-8>
+	<meta name="viewport"
+		  content="width=device-width,  
+				   initial-scale=1.0" />
+					   
 	<title>CSS3 Memory Game</title>
+	
 	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,bold&subset=latin' rel='stylesheet' type='text/css' />
 	<link href='http://fonts.googleapis.com/css?family=Orbitron:400,700' rel='stylesheet' type='text/css' />
 	<link rel="stylesheet" href="./css/memorygame.css" />
@@ -23,7 +28,8 @@
 </head>
 <body>
 	<header>
-		<h1>Memory Game</h1>
+		<p>Memory Game</p>
+		<p id="pTurnInfo" class="turninfo"></p>
 	</header>
 
 	<section id="scStartGame">
@@ -133,7 +139,7 @@
 					<div id="dvGameID">
 					<table>
 						<tr>
-							<td class="tableHeader">Game ID</td>
+							<td class="tableHeader"><p class="tableHeader">Game ID</p></td>
 						</tr>
 						<tr>
 							<td><p><span class="btn" id="spGameID">Unknown</span></p></td>
@@ -244,7 +250,6 @@
 	</section>
 
 	<section id="scGame" class="hide">  <!-- previous: #game -->
-		<p id="pTurnInfo" class="turninfo"></p>
 		<table id="tblBoard">
 			<thead>
 			</thead>
@@ -323,11 +328,11 @@
 		~rows=rows
 		~cols=cols
 	}}
-		<table>
+		<table class='cardTable'>
 			{{for start=0 end=~rows itemVar="~row"}}
 				<tr>
 				{{for start=0 end=~cols itemVar="~col"}}
-					<td>
+					<td class='cardCell'>
 						{{include tmpl="#tmplCard" /}}
 					</td>
 				{{/for}}

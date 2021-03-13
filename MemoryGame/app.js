@@ -114,23 +114,29 @@ io.sockets.on('connection', function (socket) {
 		//if so, set game constants to this game
 			console.log(`  init.strJSON==socket.user.strJSON`);
 			let gc = msg["gameConstants"];
-			game.setConstants( gc );
-			//inform others (and self) and start countdown
-			console.log(`user list in room [${gid}]: ${enumUsers(gid)}`);
-			socket.broadcast.to(gid).emit('gameSettingsFinalized', JSON.stringify( gc ));
-			socket.emit('gameSettingsFinalized', JSON.stringify( gc ));
-			console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
-			console.log(`  isPracticeMode=${game.isPracticeMode()}`);
-			let waitBefStart = (game.isPracticeMode() ? CONSTANTS.getWaitSecBeforePractice()-1 : CONSTANTS.getWaitSecBeforeStart()-1);
-			initializeCountDown(socket, gid, waitBefStart, processStartGame);//in fact the first run will occur a second later
-			console.log(`  interval set for ${waitBefStart} secs`);
-		
-			//set up game on server side
-			processSetupGame(gid);
+			let resp = game.checkConstants(gc);
+			if(resp){
+				game.setConstants( gc );
+				//inform others (and self) and start countdown
+				console.log(`user list in room [${gid}]: ${enumUsers(gid)}`);
+				socket.broadcast.to(gid).emit('gameSettingsFinalized', JSON.stringify( gc ));
+				socket.emit('gameSettingsFinalized', JSON.stringify( gc ));
+				console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
+				console.log(`  isPracticeMode=${game.isPracticeMode()}`);
+				let waitBefStart = (game.isPracticeMode() ? CONSTANTS.getWaitSecBeforePractice()-1 : CONSTANTS.getWaitSecBeforeStart()-1);
+				initializeCountDown(socket, gid, waitBefStart, processStartGame);//in fact the first run will occur a second later
+				console.log(`  interval set for ${waitBefStart} secs`);
+			
+				//set up game on server side
+				processSetupGame(gid);
+			} else {
+				console.log(`  ERR_WRONG_SETTINGS: gameConstants=${JSON.stringify(gc)}`);
+				socket.emit('ERROR', JSON.stringify({error:'ERR_WRONG_SETTINGS'}) );				
+			}
 		} else {
 		//otherwise: inform socket something went wrong...
 			console.log(`  ERR_WRONG_INITIATOR: init.strJSON=${init.strJSON} , socket.user.strJSON=${socket.user.strJSON}`);
-			socket.emit('ERR_WRONG_INITIATOR', null );
+			socket.emit('ERROR', JSON.stringify({error:'ERR_WRONG_INITIATOR'}) );
 		}
 	});
 	
@@ -160,7 +166,8 @@ io.sockets.on('connection', function (socket) {
 		if(gameInitiator===usr){
 			processCancelGame(gid);
 		} else {
-			socket.emit('ERR_UNAUTHORIZED_CANCEL', dataJSON);
+			socket.emit('ERROR', JSON.stringify({error:'ERR_UNAUTHORIZED_CANCEL'}));
+			console.log(`   UNAUTORIZED! nothing happens...`);
 		}
 	});
 	
@@ -240,7 +247,7 @@ io.sockets.on('connection', function (socket) {
 				
 				//if already in countdown: send game constants as well
 				if(gmr.gameObj.isConstantsSet()){
-					socket.emit('gameSettingsFinalized', JSON.stringify( gmr.gameObj.getGameConstantsJSON() ));
+					socket.emit('gameSettingsFinalized', JSON.stringify( gmr.gameObj.getGameConstants() ));
 				}
 			}
 		} else {
@@ -322,8 +329,8 @@ io.sockets.on('connection', function (socket) {
 		let comp = null;
 		if(users.size <= 1 && (!game.computerPlayerAllowed()) && (!game.isPracticeMode()) ){
 			//TBD: game initiator is left alone => equivalent to cancel game against his will
-			socket.broadcast.to(inGameId).emit('ERR_NOT_ENOUGH_PARTICIPANTS');
-			socket.emit('ERR_NOT_ENOUGH_PARTICIPANTS');
+			socket.broadcast.to(inGameId).emit('ERROR', JSON.stringify({error:'ERR_NOT_ENOUGH_PARTICIPANTS'}));
+			socket.emit('ERROR', JSON.stringify({error:'ERR_NOT_ENOUGH_PARTICIPANTS'}));
 			processCancelGame(inGameId);
 			return;
 		} else if(   (users.size < game.getMaxHumanPlayers() && game.computerPlayerAllowed())
@@ -409,7 +416,7 @@ io.sockets.on('connection', function (socket) {
 		let game = gameRegistry[gid].gameObj;
 		
 		if(ci.response == 'ERR_GUESS_INVALID_LINPOS' || ci.response == 'ERR_GUESS_INVALID_USER'){
-			socket.emit(ci.response);
+			socket.emit('ERROR', JSON.stringify({error:ci.response}));
 		}
 		
 		let msg = {

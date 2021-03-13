@@ -13,10 +13,29 @@ var Constants = (function(){
 				"12pairs"	: {"r": 6, "c": 4},
 				"20pairs"	: {"r": 8, "c": 5}
 			};
+			
 		let _deckSize = {
 				"8pairs"	: 16,
 				"12pairs"	: 24,
 				"20pairs"	: 40
+			};
+			
+		let _numPlayers = {
+				"2"	: 2,
+				"3"	: 3,
+				"4"	: 4
+			};
+			
+		let _errorTexts = {
+				"ERR_WRONG_INITIATOR"			: "Sorry, You have no right to modify game settings!",
+				"ERR_UNAUTHORIZED_CANCEL"		: "Sorry, You can't cancel the game. Leave and start a new one, if You're not satisfied ",
+				"ERR_GAME_NOT_ACCESSIBLE"		: "Sorry, You can't get to this game!",
+				"ERR_NO_SUCH_GAME"				: "You may have mistyped the game ID!",
+				"ERR_WRONG_LOGIN_MODE"			: "Sorry, You can only start a new game, join to an existing one or simply play against the computer!",
+				"ERR_NOT_ENOUGH_PARTICIPANTS"	: "Unfortunately not enough participants joined. Game has been canceled.",
+				"ERR_GUESS_INVALID_LINPOS"		: "No such card!",
+				"ERR_GUESS_INVALID_USER"		: "This is not Your turn!",
+				"ERR_WRONG_SETTINGS"			: "Sorry, you tried to submit invalid game settings!"
 			};
 
 		this.getNumberOfCardsOptions = function (){
@@ -58,6 +77,10 @@ var Constants = (function(){
 			return _waitSec[opt];
 		}
 		
+		this.getMaxHumanPlayers = function(opt){
+			return _numPlayers[opt];
+		}
+		
 		this.getDeckSizeSel = function(val){
 			for(const key in _deckSize){
 				const act = _deckSize[key];
@@ -77,6 +100,8 @@ var Constants = (function(){
 			}
 			return null;
 		}
+		
+		this.getErrorText = function(errorMsg){return _errorTexts[errorMsg];}
 		
 	}
 
@@ -118,13 +143,23 @@ var Game = (function() {
         this.getInitiatedBy = function() {
             return _initiatedBy;
         };
+		this.checkConstants = function(gc){
+			if(   CONSTANTS.getLayout(gc.numCards)==null
+			   || CONSTANTS.getLimitThinkingTime(gc.limitThinkingTime)==null
+			   || ( (!_isPracticeMode) && CONSTANTS.getMaxHumanPlayers(gc.maxHumanPlayers)==null)
+			  ){
+				  return false;
+			}
+			return true;
+		}
 		
 		this.setConstants = function(gc){
 			//gc received looks like this:
 			//	numCards:			
 			//	limitThinkingTime:	
 			//	computerPlayer:		
-			//	maxHumanPlayers:	
+			//	maxHumanPlayers:
+						
 			_gameConstants = gc;
 			_gameConstantsSet = true;
 			
@@ -134,7 +169,7 @@ var Game = (function() {
 			}
 		};
 		this.isConstantsSet = function(){return _gameConstantsSet;};
-		this.getGameConstantsJSON = function(){return _gameConstants;};
+		this.getGameConstants = function(){return _gameConstants;};
 		
 		this.isPracticeMode = function(){return _isPracticeMode;};
 		

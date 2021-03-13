@@ -346,14 +346,7 @@ function thisUserJoinedGame(gameData){
 }
 
 function loginRejected(response){
-	var msg = 'Login unsuccessful! Game ID ' + $('#room').val()
-			+ (response==='ERR_NO_SUCH_GAME'
-						? ' does not exists.'
-						: (response==='ERR_GAME_NOT_ACCESSIBLE'
-									? ' is not accessible.'
-									: ' tried with wrong login mode.'
-						)
-			);
+	var msg = CONSTANTS.getErrorText(response);
 	$('#pConnResult').html(msg);
 
 	//Go back to 'what do you want?'
@@ -427,7 +420,7 @@ function hideCard(linPos, forever){
 	let idx=linPos;
 	//remove from board when needed
 	if(forever){
-		$('#dvCard'+idx).addClass('hide');
+		$('#dvCard'+idx).addClass('hideCard');
 		return;
 	}
 	//otherwise: simply flip it back
@@ -503,7 +496,7 @@ function showCardInfo(msg, targetElem){
 }
 
 function setupBoard(enable){
-	$( "#dvCards" ).find( "div.card" ).not(".hide").each(
+	$( "#dvCards" ).find( "div.card" ).not(".hideCard").each(
 		function(){
 			//regardless of currentuser watching/playing it, flip back all cards
 			let linPos = parseInt($(this).attr('id').substr(6));
@@ -618,6 +611,11 @@ function gameOver(msg){
 		updateUI();
 		$('#btnNewGame').unbind("click");
 	});
+}
+
+function handleError(errorType){
+	let errorTxt = CONSTANTS.getErrorText(errorType);
+	setTurnInfo(errorTxt, 'red');
 }
 
 
