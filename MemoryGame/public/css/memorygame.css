@@ -45,6 +45,12 @@ td.cardCell {
 	height: 10%;
 }
 
+.padded {
+	padding-top: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+}
 
 table.cardTable {
 	table-layout: fixed;
@@ -170,6 +176,10 @@ img.avatar {
 	height: 100px;
 }
 
+.center {
+	text-align:center;
+}
+
 .turninfo {
 	text-align:center;
 }
@@ -180,6 +190,10 @@ span.blue {
 
 span.black {
 	color: black;
+}
+
+span.red {
+	color: red;
 }
 
 .showPic {

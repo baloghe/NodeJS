@@ -3,14 +3,16 @@ function updateUI(){
 	console.log(`updateUI :: Application.state=${Application.state}`);
 
 	if( Application.state === 'OPENED' ){
-		$('#btnConnect').prop('disabled', true);
+		$('#btnJoinGame').prop('disabled', true);
+		$('#btnStartNewGame').prop('disabled', true);
 		$('#btnPlayAgainstComputer').prop('disabled', true);
 		$('#scStartGame').removeClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
 	} else if( Application.state === 'CONNECTED' ){
-		$('#btnConnect').prop('disabled', false);
+		$('#btnJoinGame').prop('disabled', false);
+		$('#btnStartNewGame').prop('disabled', false);
 		$('#btnPlayAgainstComputer').prop('disabled', false);
 		$('#scStartGame').removeClass('hide');
 		$('#tblLoginButtons').removeClass('hide');
@@ -18,8 +20,9 @@ function updateUI(){
 		$('#scGame').addClass('hide');
 		$('#scResults').addClass('hide');
 	} else if( Application.state === 'JOIN_GAME' || Application.state === 'START_NEW_GAME' || Application.state === 'PLAY_AGAINST_COMPUTER'){
-		$('#btnConnect').prop('disabled', true);
-		$('#btnPlayAgainstComputer').prop('disabled', true);
+		$('#btnJoinGame').prop('disabled', false);
+		$('#btnStartNewGame').prop('disabled', false);
+		$('#btnPlayAgainstComputer').prop('disabled', false);
 		$('#scStartGame').removeClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
@@ -42,11 +45,13 @@ function updateUI(){
 		$('#scStartGame').addClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').removeClass('hide');
+		$('#btnQuitGame').prop('disabled', false);
 		$('#scResults').addClass('hide');
 	} else if( Application.state === 'GAME_FINISHED' ){
 		$('#scStartGame').addClass('hide');
 		$('#scGameSettings').addClass('hide');
 		$('#scGame').addClass('hide');
+		$('#btnQuitGame').prop('disabled', true);
 		$('#scResults').removeClass('hide');
 	}
 }
@@ -218,6 +223,15 @@ $( document ).ready(function(){
 		//	2) send to Server to inform other users in room
 		Application.state = 'CONNECTED';
 		CLIENT_SOCKET.leaveGame( CLIENT_GAME.getGameID() );
+		gameLeft( CLIENT_GAME.getGameID() );
+		CLIENT_GAME = null;
+		updateUI();
+	});
+	
+	$('#btnQuitGame').click(function(e){
+		//TBD: player decides to quit the actual game
+		//	1) rollback locally to 'CONNECTED' but already having an identity
+		CLIENT_SOCKET.quitGame( CLIENT_GAME.getGameID() );
 		gameLeft( CLIENT_GAME.getGameID() );
 		CLIENT_GAME = null;
 		updateUI();

@@ -55,24 +55,24 @@
 
 					<!-- Avatar Chooser popup overlay -->
 					<div id="dvAvChooser">
-						<form id="frmSelNamAv" method="post">
-							<p id="pGameIdInput">
+						<form id="frmSelNamAv" method="post" class="padded">
+							<p id="pGameIdInput" class="padded">
 								<label for="room">Game ID</label>
 								<input id="room" name="room" minlength="6" maxlength="6" type="text"/>
 							</p>
 
-							<p>
+							<p class="padded">
 								<label for="name">Nickname</label>
 								<input id="name" name="name" minlength="3" type="text" required />
 							</p>
 
-							<p>
+							<p class="padded">
 								<label for="avatar">Avatar</label>
 								<img id="imgAvSelected" class="avatar" src="https://image.flaticon.com/icons/png/128/149/149071.png"></img>
 								<input id="avatarSelected" name="name" minlength="3" type="hidden" value="https://image.flaticon.com/icons/png/128/149/149071.png"/>
-							</p>
+							</p class="padded">
 
-							<p>
+							<p class="padded">
 								<button id="btnFrmSelSubmit" type="submit" value="SUBMIT"><span class="btn">Submit</span></button>
 							</p>
 						</form>
@@ -302,7 +302,7 @@
 	</section> <!-- #scGame -->
 
 	<section id="scResults" class="hide">  <!-- previous: #results -->
-		<h3>Game Over</h3>
+		<h3 class="center">Game Over</h3>
 		<div id="dvResults"></div>
 		<button id="btnNewGame" type="button" value="New game"><span class="btn">New game</span></button>
 	</section><!-- #scResults -->

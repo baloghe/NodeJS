@@ -124,7 +124,8 @@ io.sockets.on('connection', function (socket) {
 				console.log(`  gameSettingsFinalized broadcasted with ${JSON.stringify( gc )}`);
 				console.log(`  isPracticeMode=${game.isPracticeMode()}`);
 				let waitBefStart = (game.isPracticeMode() ? CONSTANTS.getWaitSecBeforePractice()-1 : CONSTANTS.getWaitSecBeforeStart()-1);
-				initializeCountDown(socket, gid, waitBefStart, processStartGame);//in fact the first run will occur a second later
+				let ivl = initializeCountDown(socket, gid, waitBefStart, processStartGame);//in fact the first run will occur a second later
+				game.waitToStartCountDown = ivl;
 				console.log(`  interval set for ${waitBefStart} secs`);
 			
 				//set up game on server side
@@ -171,6 +172,32 @@ io.sockets.on('connection', function (socket) {
 		}
 	});
 	
+	socket.on('quitGame', dataJSON => {
+		console.log(`quitGame (received) :: ${dataJSON}`);
+		
+		let msg = JSON.parse( dataJSON );
+		let gid = msg["gameId"];
+		
+		//check if this user is really playing that game...
+		let gr = gameRegistry[gid];
+		if(gr != null){
+			let users = gr.users;
+			let usr = socket.user.strJSON;
+			if(users.has(usr)){
+				//OK
+				users.delete(usr);
+				socket.leave(gid);
+				//TBD: inform other users
+				//TBD: dismantle game if no Human users left in room
+			} else {
+				//Unauthorized quit
+				socket.emit('ERROR', JSON.stringify({error:'ERR_UNAUTHORIZED_QUIT'}));
+			}
+		} else {
+			socket.emit('ERROR', JSON.stringify({error:'ERR_NO_SUCH_GAME'}));
+		}
+	});
+	
 	function processCancelGame(gid){
 		//everyone kicked out of room + inform and handle client side
 		console.log(`processCancelGame :: gameId=${gid}`);
@@ -183,10 +210,15 @@ io.sockets.on('connection', function (socket) {
 		let arr = getSocketArray(gid);
 		for(const s of arr){
 			s.leave(gid);
-		}/*
-		io.sockets.clients(gid).forEach(function(s){
-			s.leave(gid);
-		});*/
+		}
+		//clear countDowns, if any
+		let game = gameRegistry[gid].gameObj;
+		try{
+			clearInterval(game.waitToStartCountDown);
+		} catch (error) {
+			//no such interval => nothing to do...
+		}
+		game.clearCountDown();
 	}
 
 	/* user disconnected */
@@ -213,10 +245,16 @@ io.sockets.on('connection', function (socket) {
 		socket = socket || getSocketArray(gid)[0]; //either game initiator or someone from the same room
 		const ivl = setInterval(() => {
 			let s = JSON.stringify({"gameID": gid, sec: numSec});
-			socket.broadcast.to(gid).emit('remainingSec', s);
-			socket.emit('remainingSec', s );
-			numSec--;
-			//console.log(`  remainingSec broadcasted, left: ${s} s, gid=${gid}`);
+			if(socket != null){
+				socket.broadcast.to(gid).emit('remainingSec', s);
+				socket.emit('remainingSec', s );
+				numSec--;
+				//console.log(`  remainingSec broadcasted, left: ${s} s, gid=${gid}`);
+			} else {
+				//apparently all users left the room => this game is over...
+				clearInterval(ivl);
+				gameRegistry.delete(gid);
+			}
 			
 			if(numSec <= 0){
 				clearInterval(ivl);

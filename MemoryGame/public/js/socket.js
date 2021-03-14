@@ -154,7 +154,7 @@ var SWP = (function(){
 		this.loginToServer = function(inGameId){
 			var gid = (Application.state==='JOIN_GAME' ? inGameId : null);
 			var loginData={username: CURRENT_USER.name, avatar: CURRENT_USER.avatar, loginMode: Application.state, loginGameId: gid};
-			console.log(`loginToServer :: loginData=${JSON.stringify(loginData)}`);
+			console.log(`loginToServer (sent) :: loginData=${JSON.stringify(loginData)}`);
 			SOCKET.emit('login', JSON.stringify(loginData));
 		}
 		
@@ -167,13 +167,13 @@ var SWP = (function(){
 
 		this.cancelGame = function (inGameId){
 			var msgData = {gameId: inGameId};
-			console.log(`cancelGame :: msgData=${JSON.stringify(msgData)}`);
+			console.log(`cancelGame (sent) :: msgData=${JSON.stringify(msgData)}`);
 			SOCKET.emit('cancelGame', JSON.stringify(msgData));
 		}
 
 		this.leaveGame = function (inGameId){
 			var msgData = {gameId: inGameId};
-			console.log(`leaveGame :: msgData=${JSON.stringify(msgData)}`);
+			console.log(`leaveGame (sent) :: msgData=${JSON.stringify(msgData)}`);
 			SOCKET.emit('leaveGame', JSON.stringify(msgData));
 		}
 		
@@ -185,6 +185,12 @@ var SWP = (function(){
 				};
 			console.log(`showCard (sent) :: msgData=${JSON.stringify(msgData)}`);
 			SOCKET.emit('showCard', JSON.stringify(msgData));
+		}
+		
+		this.quitGame = function(inGameId){
+			var msgData = {gameId: inGameId};
+			console.log(`quitGame (sent) :: msgData=${JSON.stringify(msgData)}`);
+			SOCKET.emit('quitGame', JSON.stringify(msgData));
 		}
 
 	}

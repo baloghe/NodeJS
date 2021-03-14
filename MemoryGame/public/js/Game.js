@@ -35,7 +35,8 @@ var Constants = (function(){
 				"ERR_NOT_ENOUGH_PARTICIPANTS"	: "Unfortunately not enough participants joined. Game has been canceled.",
 				"ERR_GUESS_INVALID_LINPOS"		: "No such card!",
 				"ERR_GUESS_INVALID_USER"		: "This is not Your turn!",
-				"ERR_WRONG_SETTINGS"			: "Sorry, you tried to submit invalid game settings!"
+				"ERR_WRONG_SETTINGS"			: "Sorry, You tried to submit invalid game settings!",
+				"ERR_UNAUTHORIZED_QUIT"			: "Sorry, You can't quit a game that You're not playing!"
 			};
 
 		this.getNumberOfCardsOptions = function (){
