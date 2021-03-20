@@ -5,23 +5,24 @@
 	<title>Server-side promise based on client-side events</title>
 	
 	<link href='http://fonts.googleapis.com/css?family=Orbitron:400,700' rel='stylesheet' type='text/css' />
-	<link rel="stylesheet" href="serverpromise.css" />
+	<link rel="stylesheet" href="./css/serverpromise.css" />
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-	<script src="socket.js"></script>
-	<script src="client.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="./js/socket.js"></script>
+	<script src="./js/client.js"></script>
 </head>
 <body>
 
 	<section id="scIntro" class="bordered">
-	<p>Instructions<>
+	<h3>Instructions</h3>
 	<p>Three of You have to press the buttons in ascending order according to their labels. Each player has to push only the button th server assigns him. All buttons are active. Should You push them in a different order OR wait too much before pressing it, the task would be deemed as failed and reassigned.</p>
 	<p>Implementation: Promise, socket.io</p>
 	</section>
 	
 	<section id="scT1">
 		<div id="dvProfile">
-			<p>User name (assigned): <span id="spName">...not yet decided...</span></p>
+			<p>User name (assigned): <span id="spName">...not yet decided...</span>, Users: <span id="spUserCnt">0</span></p>
 			<p id="pTask" class="bordered"></p>
 		</div>
 		<table>

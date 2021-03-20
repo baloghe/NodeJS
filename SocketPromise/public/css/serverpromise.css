@@ -1,0 +1,35 @@
+@CHARSET "UTF-8";
+
+section {
+	margin: 20px 0 0 20px;
+}
+
+button {
+	height: 80px;
+	width: 80px;
+	font-family: 'Orbitron', arial, serif;
+	font-weight: bold;
+	font-size: 40px;
+	color: black;
+}
+
+.bordered {
+	border-radius: 5px;
+	border: 1px solid #AAA;
+	padding: 0 7px;
+}
+
+div.traffic-light {
+	height: 80px;
+	width: 80px;
+	border-radius: 5px;
+	padding: 0 7px;
+}
+
+div.red {
+	background-color: red;
+}
+
+div.green {
+	background-color: green;
+}
