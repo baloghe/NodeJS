@@ -41,8 +41,14 @@ const SWP = (function(){
 	
 		SOCKET.on('overallResult', function(data) {
 			console.log(`overallResult (received) :: ${data}`);
-			let msg = JSON.parse(data); //{result: 'success' or 'failure'}
+			let msg = JSON.parse(data); //{result: 'SUCCESS' or 'FAILURE'}
 			CLIENT_APP.overallResult(msg);
+		});
+	
+		SOCKET.on('info', function(data) {
+			console.log(`info (received) :: ${data}`);
+			let msg = JSON.parse(data); //{txt: String}
+			CLIENT_APP.showInfo(msg);
 		});
 		
 		/////////////////////////////////////

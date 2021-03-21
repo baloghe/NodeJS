@@ -15,7 +15,7 @@ var httpd = require('http').Server(app);
 var io = require('socket.io')(httpd);
 
 //local vars
-const userRegistry = {};
+const userRegistry = new Map();
 let TASK = null;
 const actionEmitter = new EventEmitter();
 
@@ -54,29 +54,29 @@ io.sockets.on('connection', function (socket) {
 	console.log(`connect trial on socket ${socket.id}`);
 	
 	//only let players in when theay are less than 3
-	if(Object.keys(userRegistry).length < 3){
+	if(userRegistry.size < 3){
 		let uid = getRandomString(6);
-		while( userRegistry[uid] != undefined ){
+		while( userRegistry.get(uid) != undefined ){
 			//uid exists => create new one
 			uid = getRandomString(6);
 		}//wend
-		userRegistry[uid] = socket;
+		userRegistry.set(uid, socket);
 		socket.user = uid;
-		console.log(`   user id assigned: ${socket.user}, number of users: ${Object.keys(userRegistry).length}`);
+		console.log(`   user id assigned: ${socket.user}, number of users: ${userRegistry.size}`);
 
 		/* confirm connection */
-		let msg1 = JSON.stringify( {userID: uid, userCnt: Object.keys(userRegistry).length} );
-		let msg2 = JSON.stringify( {userCnt: Object.keys(userRegistry).length} );
+		let msg1 = JSON.stringify( {userID: uid, userCnt: userRegistry.size} );
+		let msg2 = JSON.stringify( {userCnt: userRegistry.size} );
 		socket.emit('login', msg1);
 		socket.broadcast.emit('userJoined', msg2);
 		
 		/* 3 participants => launch "game" */
-		if(Object.keys(userRegistry).length == 3){
+		if(userRegistry.size == 3){
 			resetTask();
 		}
 	} else {
 		//forcibly close connection, 3 players are enough!
-		let msg1 = JSON.stringify( {userCnt: Object.keys(userRegistry).length} );
+		let msg1 = JSON.stringify( {userCnt: userRegistry.size} );
 		socket.emit('forceDisconnect', msg1);
 		setTimeout( function(){
 				socket.disconnect(true);
@@ -94,10 +94,12 @@ io.sockets.on('connection', function (socket) {
 	
 	/* user disconnected */
 	socket.on('disconnect', function() {
-		console.log(`disconnect by user ${socket.user ? socket.user : 'UNKNOWN'} on socket ${socket.id}`);
+		console.log(`disconnect by user ${socket.user ? socket.user : 'UNKNOWN'} on socket ${socket.id}, remaining users: ${userRegistry.size}`);
 		try{
 			let uid = socket.user;
-			delete userRegistry.uid;
+			//console.log(`  key to delete: ${uid}`);
+			userRegistry.delete(uid);
+			//console.log(`  after delete: [${Array.from(userRegistry.keys()).join(',')}]`);
 		} catch (error) {
 			//no user on socket => nothing to do...
 			console.log(`disconnect :: error: ${error}`);
@@ -109,13 +111,25 @@ io.sockets.on('connection', function (socket) {
 
 function handleTaskFailed(err){
 	console.log(`TASK failed: ${err}`);
-	setTiemout(resetTask, 1000);
+	scheduleReset('FAILURE');
 }
 
 function handleTaskSuccess(){
 	console.log(`TASK succeeded!!!`);
 	console.log(`Let's play again!`);
-	setTiemout(resetTask, 1000);
+	scheduleReset('SUCCESS');
+}
+
+function scheduleReset(outcome){
+	setTimeout(function (){
+		let msg1 = {result: outcome};
+		io.sockets.emit('overallResult', JSON.stringify(msg1));
+		setTimeout(function (){
+			let msg2 = {txt: "Let's play again!"};
+			io.sockets.emit('info', JSON.stringify(msg2));
+			setTimeout(resetTask, 1000);
+		}, 1000);
+	}, 1000);
 }
 
 function handlePartialResult(){
@@ -126,20 +140,20 @@ function handlePartialResult(){
 		return s == 'COMPLETED' ? 1 : s == 'FAILED' ? 2 : 0;
 	});
 	console.log(`  ${msg.join(',')}`);
-	io.sockets.emit('partialResult', JSON.stringify({buttons: msg}));	
+	io.sockets.emit('partialResult', JSON.stringify({buttons: msg}));
 }
 
 function resetTask(){
 	console.log(`TASK reset start -----------------`);
 	
 	// see if there are still 3 users...
-	if(Object.keys(userRegistry).length == 3){
+	if(userRegistry.size == 3){
 		//remove listeners
 		actionEmitter.removeAllListeners('action');
 		
 		//shuffle users
 		let arr = [];
-		for(u in userRegistry){
+		for(u of userRegistry.keys()){
 			arr.push(u);
 		}//next user
 		shuffleArray(arr);
@@ -152,7 +166,7 @@ function resetTask(){
 			console.log(`    ${'T1-' + (i+1)}  ->  ${arr[i]}`);
 			//inform user
 			let msg = {toPress: i+1};
-			let s = userRegistry[ arr[i] ];
+			let s = userRegistry.get(arr[i]);
 			s.emit('setTask', JSON.stringify(msg));
 			console.log(`      informed: ${JSON.stringify(msg)}`);
 		}//next user
@@ -169,6 +183,6 @@ function resetTask(){
 		console.log(`TASK reset done  -----------------`);
 	} else {
 		//users needed urgently!
-		console.log(`resetTask :: TBD! we have ${Object.keys(userRegistry).length} users instead of 3`);
+		console.log(`resetTask :: TBD! we have ${userRegistry.size} users instead of 3`);
 	}
 }

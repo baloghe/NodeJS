@@ -4,6 +4,19 @@ section {
 	margin: 20px 0 0 20px;
 }
 
+h3 {
+	font-family: Palatino, serif;
+	font-variant: small-caps;
+	font-weight: bold;
+	font-size: 18px;
+}
+
+p {
+	font-family: Helvetica, serif;
+	font-weight: normal;
+	font-size: 15px;
+}
+
 button {
 	height: 80px;
 	width: 80px;
@@ -24,6 +37,16 @@ div.traffic-light {
 	width: 80px;
 	border-radius: 5px;
 	padding: 0 7px;
+}
+
+.red {
+	color: red;
+	font-weight: bold;
+}
+
+.green {
+	color: green;
+	font-weight: bold;
 }
 
 div.red {

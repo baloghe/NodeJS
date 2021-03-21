@@ -16,13 +16,19 @@
 
 	<section id="scIntro" class="bordered">
 	<h3>Instructions</h3>
-	<p>Three of You have to press the buttons in ascending order according to their labels. Each player has to push only the button th server assigns him. All buttons are active. Should You push them in a different order OR wait too much before pressing it, the task would be deemed as failed and reassigned.</p>
-	<p>Implementation: Promise, socket.io</p>
+	<p>Three of You have to press the buttons in ascending order according to their labels. Pressing of a single button is considered as a subtask. Subtasks are assigned sequentially by the Server.
+		<br/>Each player has to push only the button the server assigns him. All buttons are active on Client side, however Server side listens only to the button of the Subtask just assigned.
+		<br/>Should the button be pushed by someone else, the task would be deemed as failed and reassigned.
+	</p>
+	<p><i>Implementation: Chain of Promise on Sever side, socket.io for communication</i></p>
 	</section>
 	
 	<section id="scT1">
 		<div id="dvProfile">
-			<p>User name (assigned): <span id="spName">...not yet decided...</span>, Users: <span id="spUserCnt">0</span></p>
+			<p>User name (assigned): <span id="spName">...not yet decided...</span>, Users: <span id="spUserCnt">0</span>
+				<br/><span id="spResult">&nbsp;</span>
+				<br/><span id="spInfo">&nbsp;</span>
+			</p>
 			<p id="pTask" class="bordered"></p>
 		</div>
 		<table>

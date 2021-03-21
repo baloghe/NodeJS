@@ -18,6 +18,19 @@ const Client = (function() {
 			$('#pTask').html(str);
 		}
 		
+		function updateResult(str){
+			if(str == 'SUCCESS'){
+				$('#spResult').addClass('green');
+			} else {
+				$('#spResult').addClass('red');				
+			}
+			$('#spResult').html(str);
+		}
+		
+		function setInfo(str){
+			$('#spInfo').html(str);
+		}
+		
 		function activateButtons(){
 			for(let i of ['T1-1','T1-2','T1-3']){
 				console.log(`unbind and activate click() for ${'#btn' + i}`);
@@ -37,6 +50,12 @@ const Client = (function() {
 				$('#dv' + i).removeClass('red');
 				$('#dv' + i).removeClass('green');
 			}//next light
+		}
+		
+		function resetResults(){
+			$('#spResult').removeClass('green');
+			$('#spResult').removeClass('red');
+			$('#spResult').html(' ');
 		}
 		
 		function setTrafficLight(taskID, color){
@@ -63,6 +82,8 @@ const Client = (function() {
 			updateTask("Task: press button nr. " + msg["toPress"] + " !");
 			activateButtons();
 			resetTrafficLights();
+			resetResults();
+			setInfo("");
 		};
 		
 		this.partialResult = function(msg){
@@ -71,6 +92,16 @@ const Client = (function() {
 				let color = msg.buttons[i] == 0 ? null : msg.buttons[i] == 1 ? 'green' : 'red';
 				setTrafficLight('T1-' + (i+1), color);
 			}//next button state
+		};
+		
+		this.overallResult = function(msg){
+			//{result: 'SUCCESS' or 'FAILURE'}
+			updateResult(msg["result"]);
+		};
+		
+		this.showInfo = function(msg){
+			//{txt: String}
+			setInfo(msg["txt"]);
 		};
 	}
 	
