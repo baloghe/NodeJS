@@ -1,0 +1,11 @@
+{
+"name": "socketpromise",
+"version": "1.0.0",
+"dependencies": {
+	"http": "*",
+	"fs": "*",
+	"socket.io": "*",
+	"express": "*"
+}
+}
+
