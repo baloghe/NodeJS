@@ -8,6 +8,12 @@ const Client = (function(){
 	
 	function Client(){
 		
+		let _stateToColor = new Map();
+		_stateToColor.set(0, null);
+		_stateToColor.set(1, 'green');
+		_stateToColor.set(2, 'red');
+		_stateToColor.set(3, 'amber');
+		
 		//
 		//	Render Flow upon creation
 		//
@@ -72,6 +78,10 @@ const Client = (function(){
 			$('#spInfo').html(str);
 		}
 		
+		function setTick(tid, s){
+			$('#dv'+tid).html(s);
+		}
+		
 		function activateButtons(){
 			for( i of Array.from( { length: 10} , (_, i) => 'T'+(i+1) ) ){
 				console.log(`unbind and activate click() for ${'#btn' + i}`);
@@ -91,6 +101,7 @@ const Client = (function(){
 			for(i of Array.from( { length: 10} , (_, i) => '#dvT'+(i+1)) ){
 				$(i).removeClass('red');
 				$(i).removeClass('green');
+				$(i).removeClass('amber');
 			}
 		}
 		
@@ -103,6 +114,7 @@ const Client = (function(){
 		function setTrafficLight(taskID, color){
 			$('#dv' + taskID).removeClass('red');
 			$('#dv' + taskID).removeClass('green');
+			$('#dv' + taskID).removeClass('amber');
 			if(color != null){
 				$('#dv' + taskID).addClass(color);
 			}
@@ -131,8 +143,11 @@ const Client = (function(){
 		this.partialResult = function(msg){
 			//{buttons: Array of {taskID: String, state: (0: not yet attempted | 1=success | 2=failure)}}
 			for(let i=0; i<msg["buttons"].length; i++){
-				let color = msg.buttons[i].state == 0 ? null : msg.buttons[i].state == 1 ? 'green' : 'red';
+				let color = _stateToColor.get(msg.buttons[i].state);
 				setTrafficLight(msg.buttons[i].taskID, color);
+				if(color != 'amber'){
+					setTick(msg.buttons[i].taskID, "");
+				}
 			}//next button state
 		};
 		
@@ -144,6 +159,11 @@ const Client = (function(){
 		this.showInfo = function(msg){
 			//{txt: String}
 			setInfo(msg["txt"]);
+		};
+		
+		this.tick = function(msg){
+			//{taskID: String, remainingSec: int}
+			setTick(msg.taskID, msg.remainingSec);
 		};
 		
 	}

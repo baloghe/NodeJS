@@ -150,10 +150,19 @@ function handlePartialResult(){
 	let actRes = reducer( TASK.getStates() );
 	console.log(`  ${actRes.map(e => '['+e.taskID+': '+e.state+']').join(',')}  translated to`);
 	let msg = actRes.map( e => {
-		return {taskID: e.taskID, state: e.state == 'COMPLETED' ? 1 : e.state == 'FAILED' ? 2 : 0};
+		return {taskID: e.taskID, state: e.state == 'COMPLETED' ? 1 : e.state == 'FAILED' ? 2 : e.state == 'PENDING' ? 3 : 0};
 	});
 	console.log(`  ${msg.map(e => '['+e.taskID+': '+e.state+']').join(',')}`);
 	io.sockets.emit('partialResult', JSON.stringify({buttons: msg}));
+}
+
+function setListeners(){
+	//tick forwarded to all clients
+	actionEmitter.on('tick', function _listener(taskID, remainingSec){
+		let msg = JSON.stringify({"taskID": taskID, "remainingSec": remainingSec});
+		io.sockets.emit('tick', msg);
+		console.log(`${taskID} tick: ${remainingSec} s remained.`);
+	});
 }
 
 function assignTasks(userArr, taskArr, minEach){
@@ -220,6 +229,8 @@ function resetTask(){
 	if( userRegistry.size == 3 ){
 		//remove listeners
 		actionEmitter.removeAllListeners('action');
+		actionEmitter.removeAllListeners('tick');
+		actionEmitter.removeAllListeners('overdue');
 		
 		//get users
 		let uarr = [];
@@ -229,13 +240,6 @@ function resetTask(){
 		
 		//generate (elementary) Tasks
 		let tarr = Array.from( { length: 10} , (_, i) => new ElementaryTask('T'+(i+1), actionEmitter) );
-		/*
-		let tarr = Array.from( { length: 10} , (_, i) => {
-						let t = new ElementaryTask('T'+(i+1), actionEmitter);
-						console.log(`  ${i+1}. elementary task: ${t.getID()}`);
-						return t;
-					});
-		*/
 		
 		//build composite task
 		TASK = buildTask(tarr);
@@ -255,7 +259,10 @@ function resetTask(){
 			s.emit('setTask', JSON.stringify(msg));
 			console.log(`    informed: ${JSON.stringify(msg)}`);
 		}//next u
-				
+			
+		//set listeners
+		setListeners();
+		
 		//start it
 		TASK.start(handlePartialResult)
 			.then(handleTaskSuccess)

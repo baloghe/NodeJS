@@ -35,14 +35,20 @@ const SWP = (function(){
 		
 		SOCKET.on('partialResult', function(data) {
 			console.log(`partialResult (received) :: ${data}`);
-			let msg = JSON.parse(data); //{buttons: Array of {0=not yet attempted or 1=success or 2=failure}}
+			let msg = JSON.parse(data); //{buttons: Array of {0=not yet attempted or 1=success or 2=failure or 3=running}}
 			CLIENT_APP.partialResult(msg);
 		});
 		
 		SOCKET.on('overallResult', function(data) {
 			console.log(`partialResult (received) :: ${data}`);
-			let msg = JSON.parse(data); //{result: "success" or "failure"}}
+			let msg = JSON.parse(data); //{result: "success" or "failure"}
 			CLIENT_APP.overallResult(msg);
+		});
+		
+		SOCKET.on('tick', function(data) {
+			console.log(`tick (received) :: ${data}`);
+			let msg = JSON.parse(data); //{taskID: String, remainingSec: int}
+			CLIENT_APP.tick(msg);
 		});
 		
 		

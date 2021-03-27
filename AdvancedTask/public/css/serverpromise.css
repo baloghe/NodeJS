@@ -88,6 +88,13 @@ div.traffic-light {
 	border-radius: 5px;
 	filter: drop-shadow(4px 4px 2px gray);
 	background: linear-gradient(-80deg, #DDD, #CCC, #BBB);
+	
+	font-family: "Arial Narrow", Arial, sans-serif;
+	font-weight: normal;
+	font-size: 12px;
+	color: black;
+	text-align: center;
+	vertical-align: middle;
 }
 
 div.red {
@@ -96,6 +103,10 @@ div.red {
 
 div.green {
 	background: linear-gradient(-80deg, #0D0, #0C0, #0B0);
+}
+
+div.amber {
+	background: linear-gradient(-80deg, #ffbf00, #e6ac00, #cc9900);
 }
 
 div.pad {
