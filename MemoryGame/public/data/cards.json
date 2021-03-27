@@ -94,5 +94,45 @@
 	,"creationDate":"1610"
 	,"caption":		"Henry IV"
 	,"otherInfo":	"Henry IV. (1553–1610) King of France, Bourbon"
+},
+{
+	 "cardID":		"P13"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/6/60/Louis-XI.jpg"
+	,"artist":		"Jacob de Litemont"
+	,"creationDate":"around 1470"
+	,"caption":		"Louis XI"
+	,"otherInfo":	"Louis XI. (1461–1483) King of France, Valois"
+},
+{
+	 "cardID":		"P13"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/c/c8/Portrait_of_James_V_of_Scotland_%281512_-_1542%29.jpg"
+	,"artist":		"Corneille de Lyon"
+	,"creationDate":"1536"
+	,"caption":		"James V"
+	,"otherInfo":	"James V. (1513–1542) King of Scotland, Stewart"
+},
+{
+	 "cardID":		"P14"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/2/2c/Enrique_II_de_Castilla.jpg"
+	,"artist":		"Jaime Serra"
+	,"creationDate":"around 1375"
+	,"caption":		"Henry II"
+	,"otherInfo":	"Henry II. (1334–1379) King of Castile and León, Trastámara"
+},
+{
+	 "cardID":		"P15"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/c/cf/Gustav_I_of_Sweden_c_1550.jpg"
+	,"artist":		"unknown"
+	,"creationDate":"around 1550"
+	,"caption":		"Gustav I"
+	,"otherInfo":	"Gustav I. (1521–1523) King of Sweden, Vasa"
+},
+{
+	 "cardID":		"P16"
+	,"url":			"https://upload.wikimedia.org/wikipedia/commons/b/b8/Christian_III_of_Denmark.jpg"
+	,"artist":		"Jakob Binck"
+	,"creationDate":"around 1550"
+	,"caption":		"Christian III"
+	,"otherInfo":	"Christian III. (1503–1559) King of Denmark and Norway, Oldenburg"
 }
 ]
