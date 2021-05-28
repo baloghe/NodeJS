@@ -1,0 +1,11 @@
+mixin _attrLoad(attrs)
+	table.loadspec
+		tr
+			th !{lang.thAttrName}
+			th !{lang.thLoad}
+		each attr of attrs
+			tr
+				td !{attr.column}
+				td
+					if attr.load
+						+_load(attr.load)

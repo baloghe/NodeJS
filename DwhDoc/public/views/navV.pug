@@ -1,0 +1,28 @@
+div.navV
+	table.navV
+		each link in navV
+			tr
+				td
+					a(href='' data-column-id=`${link}`) !{link}
+script.
+	$('table.navV tr td a').unbind().on('click', function (e) {
+		e.preventDefault();//otherwise the link gets activated and requests index.html once more
+		let nm = $(this).data('columnId');
+		let u = '/#{approot}/show/column/'+nm;
+		//console.log(`clicked: ${nm} --> url: ${u}`);
+		$.ajax({
+			url: u,
+			type : 'GET',
+			success: function(data){
+				//console.log(`success: ${data}`);
+				if(data){
+					$('#dvSpecification').html(data);
+				} else {
+					$('#dvSpecification').html(`Sorry, column ${nm} not found...`);
+				}
+			},
+			error: function(){
+				$('#dvSpecification').html('Sorry, an error occurred');
+			}
+		});
+	});

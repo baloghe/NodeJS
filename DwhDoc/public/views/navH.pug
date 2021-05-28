@@ -1,0 +1,26 @@
+ul.navH
+	each link in navH
+		li
+			a(href='' data-table-id=`${link}`) !{link}
+script.
+	$('ul.navH li a').unbind().on('click', function (e) {
+		e.preventDefault();//otherwise the link gets activated and requests index.html once more
+		let nm = $(this).data('tableId');
+		let u = '/#{approot}/show/table/'+nm;
+		//console.log(`clicked: ${nm} --> url: ${u}`);
+		$.ajax({
+			url: u,
+			type : 'GET',
+			success: function(data){
+				//console.log(`success: ${data}`);
+				if(data){
+					$('#dvSpecification').html(data);
+				} else {
+					$('#dvSpecification').html(`Sorry, table ${nm} not found...`);
+				}
+			},
+			error: function(){
+				$('#dvSpecification').html('Sorry, an error occurred');
+			}
+		});
+	});

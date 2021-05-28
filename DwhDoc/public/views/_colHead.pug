@@ -1,0 +1,44 @@
+mixin _colHead(head, inTable, approot)
+	table.colSpecHeader
+		tr
+			th !{lang.thAttrName}
+			td !{head.name}
+		tr
+			th !{lang.thType}
+			td !{head.type}
+		tr
+			th !{lang.thContent}
+			td !{head.desc}
+		tr
+			th !{lang.thAppearance}
+			td
+				ul.appearance
+					each tbl in head.tables
+						if (tbl==inTable)
+							li !{tbl}
+						else
+							li
+								a(href='' data-table-id=`${tbl}` data-column-id=`${head.name}`) !{tbl}
+script.
+	$('ul.appearance li a').unbind().on('click', function (e) {
+		e.preventDefault();//otherwise the link gets activated and requests index.html once more
+		let tnm = $(this).data('tableId');
+		let cnm = $(this).data('columnId');
+		let u = '/#{approot}/show/column/'+cnm+'/table/'+tnm;
+		//console.log(`clicked: ${tnm}.${cnm} --> url: ${u}`);
+		$.ajax({
+			url: u,
+			type : 'GET',
+			success: function(data){
+				//console.log(`success: ${data}`);
+				if(data){
+					$('#dvSpecification').html(data);
+				} else {
+					$('#dvSpecification').html(`Sorry, column ${cnm} in table ${tnm} not found...`);
+				}
+			},
+			error: function(){
+				$('#dvSpecification').html('Sorry, an error occurred');
+			}
+		});
+	});

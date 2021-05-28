@@ -1,0 +1,22 @@
+mixin _tempTable(tdef)
+	table.tempTable
+		tr
+			th !{lang.thTempTable}
+			th !{tdef.name}
+			td !{tdef.desc}
+	if tdef.source
+		p.tempTableSources !{lang.sources}
+		+_sourceJoin(tdef.source.content, tdef.source.type)
+	if tdef.grouping
+		p.grouping !{lang.grouping}
+		ul.grouping
+			each field in tdef.grouping
+				li !{field}
+	if tdef.load
+		if tdef.grouping
+			+_attrLoadAgg(tdef.load)
+		else
+			+_attrLoad(tdef.load)
+	if tdef.postCondition
+		p.postCondition !{lang.postCondition}
+		+_whcl(tdef.postCondition)

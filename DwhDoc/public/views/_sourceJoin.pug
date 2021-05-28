@@ -1,0 +1,27 @@
+mixin _sourceJoin(items, sourceType)
+	table.join
+		each item, index in items
+			if (sourceType && sourceType=='union' && index!=0)
+				tr
+					td(colspan='3')
+						p.union UNION
+			tr
+				td
+					span.alias !{item.alias}
+				td
+					span.alias ::
+				td
+					span.table !{item.table}
+			if item.whcl
+				tr
+					td(colspan='2')
+					td
+						span.whcl !{lang.where}:
+						+_whcl(item.whcl)
+			if item.join
+				tr
+					td(colspan='2')
+					td
+						span.join !{lang.join}:
+						+_join(item.join)
+				

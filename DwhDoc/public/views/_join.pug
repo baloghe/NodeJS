@@ -1,0 +1,19 @@
+mixin _join(items)
+	table.join
+		each item in items
+			tr
+				td
+					if item.logConn
+						span.logConn !{item.logConn}
+				td
+					if item.leftColumn
+						span.alias !{item.leftTbl}
+						| .
+						span.column !{item.leftColumn}
+				td
+					span.operator !{item.op}
+				td
+					if item.rightColumn
+						span.alias !{item.rightTbl}
+						| .
+						span.column !{item.rightColumn}

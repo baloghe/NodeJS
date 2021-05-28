@@ -1,0 +1,35 @@
+include ./_colHead.pug
+include ./_attrList.pug
+include ./_whcl.pug
+include ./_join.pug
+include ./_sourceJoin.pug
+include ./_load.pug
+include ./_attrLoad.pug
+include ./_attrLoadAgg.pug
+include ./_namedBlock.pug
+include ./_tempTable.pug
+include ./_function.pug
+
+if title
+	h3 !{title}
+h4 
+	span.tableName !{tableName}
+	|.
+	span.columnName !{header.name}
++_colHead(header, tableName, approot)
+
+if blocks
+	each block in blocks
+		if (block.type=='sectionHeader')
+			h4 !{block.title}
+			if block.prologue
+				p !{block.prologue}
+		else if (block.type=='source')
+			if block.title
+				+_sourceJoin(block,block.title)
+			else
+				+_sourceJoin(block)
+		else if (block.type=='tempTable')
+			+_tempTable(block)
+		else if (block.type=='function')
+			+_function(block)

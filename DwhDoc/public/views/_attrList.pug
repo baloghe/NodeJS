@@ -1,0 +1,36 @@
+mixin _attrList(items, approot)
+	h4 !{lang.attributes}
+	table.loadspec
+		tr
+			th !{lang.thAttrName}
+			th !{lang.thType}
+			th !{lang.thContent}
+		each item of items
+			tr
+				td 
+					a(href='' data-column-id=`${item.name}` data-table-id=`${tableName}`) !{item.name}
+				td !{item.type}
+				td !{item.desc}
+	script.
+		$('table.loadspec tr td a').unbind().on('click', function (e) {
+			e.preventDefault();//otherwise the link gets activated and requests index.html once more
+			let tbl = $(this).data('tableId');
+			let col = $(this).data('columnId');
+			let u = '/#{approot}/show/column/'+col+'/table/'+tbl;
+			//console.log(`clicked: ${tbl}.${col} --> url: ${u}`);
+			$.ajax({
+				url: u,
+				type : 'GET',
+				success: function(data){
+					//console.log(`success: ${data}`);
+					if(data){
+						$('#dvSpecification').html(data);
+					} else {
+						$('#dvSpecification').html(`Sorry, table ${tbl}.${col} not found...`);
+					}
+				},
+				error: function(){
+					$('#dvSpecification').html('Sorry, an error occurred');
+				}
+			});
+		});

@@ -1,0 +1,42 @@
+mixin _load(load)
+	if load.prologue
+		p !{load.prologue}
+		
+	if load.loadType == 'ternary'
+		p.ternary
+			span.ternaryCondition !{lang.trnIf}
+			| 
+			span !{load.condition}
+			ul.ternary
+				li
+					span.ternaryThen !{lang.trnThen}
+					| 
+					span !{load.yes}
+				li
+					span.ternaryElse !{lang.trnElse}
+					| 
+					span !{load.no}
+	else if load.loadType == 'hardmap'
+		p.hardmap !{load.expression}
+			ul.hardmap
+				each map of load.maps
+					li
+						span.hardmapFrom !{map.from}
+						|  &rarr;  
+						span !{map.to}
+	else if load.loadType == 'branches'
+		p.branches !{load.expression}
+			ol(class='branches' start='1')
+				each branch of load.branches
+					li.branches
+						span.branchesIf !{branch.condition}
+							ul
+								li
+									span !{lang.braThen}
+									| 
+									span !{branch.then}
+	else
+		p !{load.text}
+		
+	if load.epilogue
+		p !{load.epilogue}

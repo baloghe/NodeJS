@@ -1,0 +1,16 @@
+mixin _tblHead(head)
+	table.tableSpecHeader
+		tr
+			th !{lang.thContent}
+			td !{head.content}
+		if head.historization
+			tr
+				th !{lang.thHistorization}
+				td !{head.historization}
+		if head.businessKeys
+			tr
+				th !{lang.thBusinessKeys}
+				td
+					ul.businessKeys
+						each bkey in head.businessKeys
+							li !{bkey}

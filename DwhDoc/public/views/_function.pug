@@ -1,0 +1,31 @@
+mixin _function(fdef)
+	table.function
+		tr
+			th !{lang.thFunction}
+			th !{fdef.name}
+			td !{fdef.desc}
+	if fdef.params
+		p.functionParams !{lang.functionParams}
+		table.functionParams
+			tr
+				th !{lang.thFuncParamName}
+				th !{lang.thFuncParamType}
+				th !{lang.thFuncParamDefault}
+				th !{lang.thFuncParamDesc}
+			each prm in fdef.params
+				tr
+					td !{prm.name}
+					td !{prm.type}
+					td !{prm.default}
+					td !{prm.desc}
+	if fdef.return
+		p.functionReturn !{lang.functionReturn}
+		table.functionReturn
+			tr
+				th !{lang.thFuncReturnType}
+				th !{lang.thFuncReturnLoad}
+			each ret in fdef.return
+				tr
+					td !{ret.type}
+					td
+						+_load(ret.load)

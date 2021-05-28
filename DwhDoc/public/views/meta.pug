@@ -1,0 +1,16 @@
+h1 !{meta.title}
+if meta.subTitle
+	h2 !{meta.subTitle}
+if meta.docHist
+	p !{lang.thHistCaption}
+	table.docHist
+		tr.docHist
+			th.docHist !{lang.thTime}
+			th.docHist !{lang.thAuthor}
+			th.docHist !{lang.thModification}
+		each line in meta.docHist
+			tr.docHist
+				td.docHist !{line.time}
+				td.docHist !{line.author}
+				td.docHist !{line.modification}
+

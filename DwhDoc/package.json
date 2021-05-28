@@ -1,0 +1,13 @@
+{
+"name": "dwhdoc",
+"version": "1.0.0",
+"dependencies": {
+	"http": "*",
+	"fs": "*",
+	"pug": "*",
+	"express": "*"
+}
+}
+
+
+

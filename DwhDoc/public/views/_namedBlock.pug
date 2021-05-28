@@ -1,0 +1,10 @@
+mixin _namedBlock(keyGen, title)
+	if title
+		h4 !{title}
+	h5 !{lang.sources}:
+	if keyGen.source.type		
+		+_sourceJoin(keyGen.source.content, keyGen.source.type)
+	else
+		+_sourceJoin(keyGen.source.content)
+	h5 !{lang.load}:
+	+_attrLoad(keyGen.load)

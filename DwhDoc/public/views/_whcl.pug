@@ -1,0 +1,10 @@
+mixin _whcl(items)
+	table.whcl
+		each item in items
+			tr
+				td
+					span.logConn !{item.logConn}
+				td !{item.left}
+				td
+					span.operator !{item.op}
+				td !{item.right}

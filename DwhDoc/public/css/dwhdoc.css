@@ -1,0 +1,80 @@
+@CHARSET "UTF-8";
+
+body {
+	font-family: "Arial Narrow", Arial, sans-serif;
+	font-style: normal;
+	font-size: 14px;
+}
+
+h1 {
+	font-weight: bold;
+	font-size: 20px;
+}
+
+h2 {
+	font-weight: normal;
+	font-size: 16px;
+	font-style: italic;
+}
+
+table.app {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+table.app tr td {
+	vertical-align: top;
+}
+
+div#dvTarget {
+	width: 400px;
+	height: 400px;
+}
+
+div#dvEmperorList {
+	width: 200px;
+	height: auto;
+	background-color: #f7dd8f;
+}
+
+img.show {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+span.picArtist {
+	font-weight: normal;
+	font-size: 14px;
+}
+span.picCaption {
+	font-weight: bold;
+	font-size: 14px;
+}
+span.picCreationDate {
+	font-weight: normal;
+	font-style: italic;
+	font-size: 14px;
+}
+span.picOtherInfo {
+	font-weight: normal;
+	font-size: 14px;
+}
+
+a.links {
+	display: block;
+	padding: 5px 5px;
+	font-style: normal;
+	font-weight: normal;
+}
+
+a.links:hover {
+	background-color: #ffbf00;
+}
+ul.links {
+	list-style-type: none;
+}
+li.links {
+	
+}
+

@@ -1,0 +1,624 @@
+{
+	"meta": {
+		"title": "Sample Mini-Datawarehouse",
+		"subTitle": "ETL documentation",
+		"header": {"time": "Timestamp", "author": "Author", "modification": "Last modification"},
+		"docHist": [
+			{"time": "2021-04-19", "author": "John Doe", "modification": "First version"},
+			{"time": "2021-04-23", "author": "Fran&#231;ois Valois", "modification": "SME Support Factor taken into account in RWA calculation"}
+		]
+	},
+	"table": [
+		{
+			"name": "CARD_SYS.ACCOUNT",
+			"desc": "Accounts in the Card System (Credit and Debit cards)",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"ACCOUNT_ID"
+			]
+		},
+		{
+			"name": "CARD_SYS.LIMIT",
+			"desc": "Credit card limits in the Card System",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"LIMIT_ID"
+			]
+		},
+		{
+			"name": "CARD_SYS.CUSTOMER",
+			"desc": "Customers in the Card System",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"CUSTOMER_ID"
+			]
+		},
+		{
+			"name": "CORE_R.ACCOUNT",
+			"desc": "Account core system / Revolving Business Module / Accounts",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"ACCOUNT_NO"
+			]
+		},
+		{
+			"name": "CORE_R.FACILITY",
+			"desc": "Account core system / Revolving Business Module / Facilities",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"ACCOUNT_NO",
+				"ACC_COUNTER"
+			]
+		},
+		{
+			"name": "CORE_C.CUSTOMER",
+			"desc": "Account core system / Core Module / Customers",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"CUSTOMER_NO"
+			]
+		},
+		{
+			"name": "CORE_C.CCY_RATES",
+			"desc": "Account core system / Core Module / FX rates",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"CCY",
+				"VALUE_DATE",
+				"TYPE"
+			]
+		},
+		{
+			"name": "CORE_T.TERM_LOAN",
+			"desc": "Account core system / Term Loan Module / Term Loans",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"LOAN_NO"
+			]
+		},
+		{
+			"name": "CORE_T.TERM_LOAN",
+			"desc": "Account core system / Term Loan Module / Term Loan Contracts",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"CONTRACT_NO"
+			]
+		},
+		{
+			"name": "CORE_T.TRANCH",
+			"desc": "Account core system / Term Loan Module / Term Loan Tranches",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"CONTRACT_NO",
+				"TRANCH_NO"
+			]
+		},
+		{
+			"name": "PROV_SYS.IMPAIRMENT",
+			"desc": "Provisioning system / Monthly IFRS impairment calculation results",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "VALUE_DATE / monthly snapshots",
+			"keys": [
+				"VALUE_DATE",
+				"DEALID"
+			]
+		},
+		{
+			"name": "COLL_MAN.OBJECT",
+			"desc": "Collateral Management system / Collateral objects",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"OBJECT_ID"
+			]
+		},
+		{
+			"name": "COLL_MAN.CLIENT_ROLE",
+			"desc": "Collateral Management system / Different Client roles in connection with Collateral Objects",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"OBJECT_ID",
+				"ROLE_CODE",
+				"CLIENT_ID"
+			]
+		},
+		{
+			"name": "COLL_MAN.ALLOCATION",
+			"desc": "Collateral Management system / Object-to-Loan allocation",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "none",
+			"keys": [
+				"OBJECT_ID",
+				"LOAN_ID"
+			]
+		},
+		{
+			"name": "RWA_SYS.CALC_RESULTS",
+			"desc": "Risk Weighted Assets calculation system / Detailed calculation results",
+			
+			"in": true,
+			"out": false,
+			"temp": false,
+			
+			"historization": "VALUE_DATE / monthly snapshots",
+			"keys": [
+				"DEAL_ID",
+				"COLLATERAL_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_CUSTOMER_CORE",
+			"desc": "Client / slow-changing attributes",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_FROM_DT-VALID_TO_DT",
+			"keys": [
+				"VALID_FROM_DT",
+				"CUSTOMER_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_ACCOUNT_CORE",
+			"desc": "Accounts and Loans / slow-changing attributes",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_FROM_DT-VALID_TO_DT",
+			"keys": [
+				"VALID_FROM_DT",
+				"ACCOUNT_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_ACCOUNT_DETAIL",
+			"desc": "Accounts and Loans / actual values and attributes in monthly snapshots",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_DT / monthly snapshots",
+			"keys": [
+				"VALID_DT",
+				"ACCOUNT_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_DEAL",
+			"desc": "Deals / actual values and attributes in monthly snapshots",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_DT / monthly snapshots",
+			"keys": [
+				"VALID_DT",
+				"DEAL_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_COLLATERAL_CORE",
+			"desc": "Collaterals / slow-changing attributes",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_FROM_DT-VALID_TO_DT",
+			"keys": [
+				"VALID_FROM_DT",
+				"COLLATERAL_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_COLL_TO_ACCOUNT",
+			"desc": "Collateral allocation to Accounts",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_DT / monthly snapshots",
+			"keys": [
+				"VALID_DT",
+				"COLLATERAL_ID",
+				"ACCOUNT_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_RWA_DETAIL",
+			"desc": "RWA calculation details at Deal-Collateral level",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_DT / monthly snapshots",
+			"keys": [
+				"VALID_DT",
+				"DEAL_ID",
+				"COLLATERAL_ID"
+			]
+		},
+		{
+			"name": "MINIDW.FCT_CCY_RATE",
+			"desc": "Various FX rates collected daily",
+			
+			"in": false,
+			"out": true,
+			"temp": false,
+			
+			"historization": "VALID_DT / daily snapshots",
+			"keys": [
+				"VALID_DT",
+				"CCY_CD",
+				"CCY_RATE_TYPE_CD"
+			]
+		}
+	],
+	
+	"table_spec": [
+		{
+			"name": "MINIDW.FCT_CUSTOMER_CORE",
+			"keyGen": {
+				"source": {
+					"content": [
+						{"alias": "T", "table": "CORE_C.CUSTOMER", 
+							"whcl": [
+								{"left": "COL_1", "op": "=", "right": "10"},
+								{"logConn": "AND", "left": "COL_2", "op": "in", "right": "('COG','WHEEL')"}
+							]
+						}
+					]
+				},
+				"load": [
+					{"column": "CUSTOMER_ID", "load": {"text": "T.CUSTOMER_NO"}},
+					{"column": "CUST_TYPE_CD", "load": {"prologue": "Only want to make a difference between Private and Non-Private customers", "loadType": "ternary", "condition": "T.TYPE == 'PRV'", "yes": "P", "no": "NP" }},
+					{"column": "CUST_STATE_CD", "load": {"prologue": "We simply hardcode the available values", "loadType": "hardmap", "expression": "T.STATE", "maps": [{"from": "ACT", "to": "A"}, {"from": "CAN", "to": "C"}, {"from": "DIE", "to": "C"}]}},
+					{"column": "CUST_STATE_CD2", "load": {"prologue": "In this order:", "loadType": "branches", "expression": "T.STATE", "branches": [{"condition": "T.STATE=ACT", "then": "A"}, {"condition": "T.TYPE=PRV", "then": "B"}]}}
+				]
+			}
+		},
+		{
+			"name": "MINIDW.FCT_ACCOUNT_CORE",
+			"keyGen": {
+				"source": {
+					"collation": "U1"
+				},
+				"load": [
+					{"column": "ACCOUNT_ID", "load": {"prologue": "Potential ID collision btw. CARD_SYS and CORE_R eliminated", "loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CA.ACCOUNT_NO"}, {"condition": "RA", "then": "RA.ACCOUNT_NO"}, {"condition": "TL", "then": "TL.CONTRACT_NO"}]}},
+					{"column": "SOURCE_SYSTEM_CD", "load": {"loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CARD_SYSTEM"}, {"condition": "RA", "then": "REVOLVING"}, {"condition": "TL", "then": "TERM_LOAN"}]}}
+				]
+			}
+		},
+		{
+			"name": "MINIDW.FCT_ACCOUNT_DETAIL",
+			"keyGen": {
+				"source": {
+					"collation": "J1"
+				},
+				"load": [
+					{"column": "CUSTOMER_ID", "load": {"prologue": "Potential ID collision btw. CARD_SYS and CORE_R eliminated", "loadType": "branches", "expression": "source", "branches": [{"condition": "CC", "then": "CC.CUSTOMER_NO"}, {"condition": "RA", "then": "RA.CUSTOMER_NO"}, {"condition": "TL", "then": "TL.CUSTOMER_NO"}]}},
+					{"column": "ACCOUNT_ID", "load": {"prologue": "Potential ID collision btw. CARD_SYS and CORE_R eliminated", "loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CA.ACCOUNT_NO"}, {"condition": "RA", "then": "RA.ACCOUNT_NO"}, {"condition": "TL", "then": "TL.CONTRACT_NO"}]}},
+					{"column": "SOURCE_SYSTEM_CD", "load": {"loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CARD_SYSTEM"}, {"condition": "RA", "then": "REVOLVING"}, {"condition": "TL", "then": "TERM_LOAN"}]}}
+				]
+			}
+		}
+	],
+	
+	"collation": [
+		{
+			"name": "U1",
+			"type": "union",
+			"content": [
+						{"alias": "CA", "table": "CARD_SYS.ACCOUNT", 
+							"whcl": [
+								{"left": "ACC_STATE", "op": "=", "right": "A"}
+							]
+						},
+						{"alias": "CC", "table": "CARD_SYS.ACCOUNT", 
+							"whcl": [
+								{"left": "ACC_STATE", "op": "=", "right": "C"},
+								{"logConn": "AND", "left": "CLOSEDATE", "op": "within", "right": "[Target month]", "comment": "accounts closed during last month should also be included"}
+							]
+						},
+						{"alias": "RA", "table": "CORE_R.ACCOUNT", 
+							"whcl": [
+								{"left": "STATE", "op": "=", "right": "A"}
+							]
+						},
+						{"alias": "RC", "table": "CORE_R.ACCOUNT", 
+							"whcl": [
+								{"left": "STATE", "op": "=", "right": "C"},
+								{"logConn": "AND", "left": "CLOSE_DATE", "op": "within", "right": "[Target month]", "comment": "accounts closed during last month should also be included"}
+							]
+						},
+						{"alias": "TL", "table": "CORE_T.TERM_LOAN", 
+							"whcl": [
+								{"left": "STATE", "op": "=", "right": "A"}
+							]
+						}
+					]
+		},
+		{
+			"name": "J1",
+			"type": "join",
+			"content": [
+						{"alias": "K", "table": "FCT_ACCOUNT_CORE.KeySet"
+						},
+						{"alias": "CA", "table": "CARD_SYS.ACCOUNT",
+							"join": [
+								{"leftTbl": "K", "leftColumn": "ACCOUNT_ID", "op": "=", "rightTbl": "CA", "rightColumn": "ACCOUNT_NO"}
+							]
+						},
+						{"alias": "CL", "table": "CARD_SYS.LIMIT",
+							"whcl": [
+								{"left": "START_DATE", "op": "<=", "right": "[Target End-Of-Month]"},
+								{"logConn": "AND", "left": "END_DATE", "op": ">=", "right": "[Target End-Of-Month]"}
+							],
+							"join": [
+								{"leftTbl": "CA", "leftColumn": "ACCOUNT_ID", "op": "=", "rightTbl": "CL", "rightColumn": "ACCOUNT_ID"}
+							]
+						},
+						{"alias": "CC", "table": "CARD_SYS.CUSTOMER",
+							"join": [
+								{"leftTbl": "CA", "leftColumn": "CUSTOMER_ID", "op": "=", "rightTbl": "CC", "rightColumn": "CUSTOMER_ID"}
+							]
+						},
+						{"alias": "RA", "table": "CORE_R.ACCOUNT",
+							"join": [
+								{"leftTbl": "K", "leftColumn": "ACCOUNT_ID", "op": "=", "rightTbl": "RA", "rightColumn": "ACCOUNT_NO"}
+							]
+						},
+						{"alias": "RF", "table": "CORE_R.FACILITY",
+							"whcl": [
+								{"left": "START_DATE", "op": "<=", "right": "[Target End-Of-Month]"},
+								{"logConn": "AND", "left": "END_DATE", "op": ">=", "right": "[Target End-Of-Month]"}
+							],
+							"join": [
+								{"leftTbl": "RA", "leftColumn": "ACCOUNT_NO", "op": "=", "rightTbl": "RF", "rightColumn": "ACCOUNT_NO"}
+							]
+						}
+					]
+		}
+	],
+	
+	"multidef": [
+		{
+			"name": "M1",
+			"title": "Test multidef page 1",
+			"blocks": [
+				{"type": "sectionHeader", "title": "Temporary tables", "prologue": "Some temporary tables will be defined here"},
+				{"type": "tempTable",
+				 "name": "TMP_TBL_1",
+				 "desc": "Aggregate deal-level data to loan/account level",
+				 "source": { "collation": "J1" },
+				 "grouping": ["ACCOUNT_ID"],
+				 "load": [
+					{"column": "CUSTOMER_ID", "agg": "MAX", "load": {"prologue": "Potential ID collision btw. CARD_SYS and CORE_R eliminated", "loadType": "branches", "expression": "source", "branches": [{"condition": "CC", "then": "CC.CUSTOMER_NO"}, {"condition": "RA", "then": "RA.CUSTOMER_NO"}, {"condition": "TL", "then": "TL.CUSTOMER_NO"}]}},
+					{"column": "SUM_ONBAL", "agg": "SUM", "load": {"prologue": "Onbalance exposure is eligible for summation", "loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CA.ACCOUNT_NO"}, {"condition": "RA", "then": "RA.ACCOUNT_NO"}, {"condition": "TL", "then": "TL.CONTRACT_NO"}]}},
+					{"column": "OFFBAL", "agg": "MAX", "load": {"loadType": "branches", "expression": "source", "branches": [{"condition": "CA", "then": "CARD_SYSTEM"}, {"condition": "RA", "then": "REVOLVING"}, {"condition": "TL", "then": "TERM_LOAN"}]}}
+				 ],
+				 "postCondition": [
+								{"left": "START_DATE", "op": "<=", "right": "[Target End-Of-Month]"},
+								{"logConn": "AND", "left": "END_DATE", "op": ">=", "right": "[Target End-Of-Month]"}
+							]
+				},
+				{"type": "sectionHeader", "title": "Functions", "prologue": "A function is needed to calculate RWA"},
+				{"type": "function",
+				 "name": "udf_RW",
+				 "desc": "RW calculator according to CRR2",
+				 "params": [
+						{"name": "PD", "type": "number", "default": "", "desc": "Probability of Default (e.g. 0.012 for a PD of 1.2%"},
+						{"name": "LGD", "type": "number", "default": "", "desc": "Loss Given Default (e.g. 0.45 for an LGD of 45%)"},
+						{"name": "ELBE", "type": "number", "default": "", "desc": "Expected Loss Best Estimate (e.g. 1.1 for an ELBE of 110%)"},
+						{"name": "REM_MATURITY", "type": "number", "default": "2.5", "desc": "Remaining Maturity in years"},
+						{"name": "IS_AVC", "type": "varchar(1)", "default": "N", "desc": "Y if financial institution, N otherwise"},
+						{"name": "IS_SME", "type": "varchar(1)", "default": "N", "desc": "Y if Small/Middle-state Enterprise, N otherwise"},
+						{"name": "IS_RETAIL", "type": "varchar(1)", "default": "N", "desc": "Y if Retail, N otherwise"},
+						{"name": "SME_FACTOR", "type": "number", "default": "", "desc": "SME factor according to CRR2"},
+						{"name": "TURNOVER_EUR", "type": "number", "default": "", "desc": "Yearly turnover expressed in EUR"},
+						{"name": "THRESHOLD", "type": "number", "default": "0.999", "desc": "Confidence level (e.g. 0.999 for confidence level of 99.9%)"}
+					],
+				 "return": [
+						{"type": "number", "load": {"prologue": "Calculation according to CRR. Role of incoming parameters:", "loadType": "branches", "expression": "", "branches": [{"condition": "PD <= 0.0", "then": "0.0"}, {"condition": "PD >= 1.0 AND LGD > ELBE AND IS_RETAIL = 'Y'", "then": "12.5 * (LGD - ELBE)"}, {"condition": "PD >= 1.0 AND (LGD <= ELBE OR IS_RETAIL <> 'Y')", "then": "0.0"}, {"condition": "TURNOVER_EUR < 5 000 000", "then": "size correction = 0.04, further calculation according to CRR"}, {"condition": "5 000 000 <= TURNOVER_EUR < 50 000 000", "then": "size correction = 0.04 * (1.0 - (TURNOVER_EUR/1000000.0 - 5.0) / 45.0), further calculation according to CRR"}, {"condition": "IS_AVC = 'Y'", "then": "AVC factor = 12.5, further calculation according to CRR"}, {"condition": "IS_SME = 'Y'", "then": "SME factor = nvl(SME_FACTOR, 0.7619), further calculation according to CRR"}]}}
+					]
+				}
+			]
+		}
+	],
+	
+	"column": [
+		{ "name": "ACCOUNT_ID","type": "varchar(30)", "desc": "Account/Loan identifier" },
+		{ "name": "ACCT_LIMIT_AMT","type": "number", "desc": "Account limit / Loan original exposure" },
+		{ "name": "ACCT_OPEN_DT","type": "date", "desc": "Account open date / Loan start date" },
+		{ "name": "ACCT_STATE_CD","type": "char(1)", "desc": "Account/Loan state (active/closed)" },
+		{ "name": "ACCT_SUBTYPE_CD","type": "varchar(10)", "desc": "Account/Loan subtype code" },
+		{ "name": "ACCT_TYPE_CD","type": "varchar(5)", "desc": "Account/Loan type code" },
+		{ "name": "ALLOCATION_RT","type": "number", "desc": "Collateral allocation rate (adds up to 100% per Collateral_Id)" },
+		{ "name": "BOOKING_EXPOSURE_AMT","type": "number", "desc": "Booking exposure amount (original currency)" },
+		{ "name": "BOOKING_EXPOSURE_OFF_AMT","type": "number", "desc": "Off-balance booking exposure (local currency)" },
+		{ "name": "BOOKING_EXPOSURE_ON_AMT","type": "number", "desc": "On-balance booking exposure (local currency)" },
+		{ "name": "BOOKING_EXPOSURE_TOTAL_AMT","type": "number", "desc": "On+Off-balance booking exposure (local currency)" },
+		{ "name": "CALC_METHOD_CD","type": "varchar(5)", "desc": "RWA calculation method code" },
+		{ "name": "CCY_CD","type": "varchar(3)", "desc": "Currency ISO code" },
+		{ "name": "CCY_RT","type": "number", "desc": "Currency rate (daily closing spot rate)" },
+		{ "name": "CCY_RATE_TYPE_CD","type": "varchar(5)", "desc": "Currency rate type code (ECB/Local National Bank reference rate etc.)" },
+		{ "name": "COLL_CATEGORY_CD","type": "varchar(5)", "desc": "Collateral category code" },
+		{ "name": "COLL_ELIGIBLE_FLG","type": "char(1)", "desc": "Is the collateral eligible for risk mitigation in RWA calculation" },
+		{ "name": "COLL_MARKET_VALUE_AMT","type": "number", "desc": "Market value of the collateral (local currency)" },
+		{ "name": "COLL_PROVIDER_ID","type": "varchar(10)", "desc": "Collateral provider (guarantee: guarantor, security: issuer, property: main owner), (FK to FCT_CUSTOMER_CORE)" },
+		{ "name": "COLL_RISK_VALUE_AMT","type": "number", "desc": "Risk value of the collateral (local currency)" },
+		{ "name": "COLL_TYPE_CD","type": "varchar(10)", "desc": "Collateral type code" },
+		{ "name": "COLL_VALUATOR_ID","type": "varchar(10)", "desc": "Collateral valuator identifier (FK to FCT_CUSTOMER_CORE)" },
+		{ "name": "COLLATERAL_ID","type": "varchar(30)", "desc": "Collateral identifier" },
+		{ "name": "CUST_OPEN_DT","type": "date", "desc": "Customer first registered at the bank" },
+		{ "name": "CUST_STATE_CD","type": "char(1)", "desc": "Customer state (active/closed)" },
+		{ "name": "CUST_TYPE_CD","type": "varchar(5)", "desc": "Customer type code" },
+		{ "name": "CUSTOMER_ID","type": "varchar(10)", "desc": "Customer identifier" },
+		{ "name": "DEAL_ID","type": "varchar(30)", "desc": "Deal identifier" },
+		{ "name": "EXPECTED_LOSS_AMT","type": "number", "desc": "Expected loss (EL) amount" },
+		{ "name": "EXPOSURE_AT_DEFAULT_AMT","type": "number", "desc": "Exposure at default (EAD) amount" },
+		{ "name": "EXPOSURE_MATURE_DT","type": "date", "desc": "Maturity date of actual exposure" },
+		{ "name": "EXPOSURE_START_DT","type": "date", "desc": "Start date of actual exposure" },
+		{ "name": "GUARANTOR_ID","type": "varchar(10)", "desc": "Identifier of the guarantor in case a risk transfer has been taken into account in RWA calculation (FK to FCT_CUSTOMER_CORE)" },
+		{ "name": "IFRS_EXPOSURE_AMT","type": "number", "desc": "IFRS exposure amount (original currency)" },
+		{ "name": "IFRS_EXPOSURE_OFF_AMT","type": "number", "desc": "Off-balance IFRS exposure (local currency)" },
+		{ "name": "IFRS_EXPOSURE_ON_AMT","type": "number", "desc": "On-balance IFRS exposure (local currency)" },
+		{ "name": "IFRS_EXPOSURE_TOTAL_AMT","type": "number", "desc": "On+Off-balance IFRS exposure (local currency)" },
+		{ "name": "IFRS_IMPAIRMENT_AMT","type": "number", "desc": "IFRS impairment amount (original currency)" },
+		{ "name": "IFRS_IMPAIRMENT_OFF_AMT","type": "number", "desc": "Off-balance IFRS impairment (local currency)" },
+		{ "name": "IFRS_IMPAIRMENT_ON_AMT","type": "number", "desc": "On-balance IFRS impairment (local currency)" },
+		{ "name": "IFRS_IMPAIRMENT_TOTAL_AMT","type": "number", "desc": "On+Off-balance IFRS impairment (local currency)" },
+		{ "name": "ON_BALANCE_FLG","type": "char(1)", "desc": "Is the exposure on- or off-balance" },
+		{ "name": "RISK_TRANSFER_FLG","type": "char(1)", "desc": "Risk transfer has been taken into account in RWA calculation" },
+		{ "name": "RISK_WEIGHTED_ASSETS_AMT","type": "number", "desc": "Risk weighted assets (RWA) amount" },
+		{ "name": "SOURCE_SYSTEM_CD","type": "varchar(10)", "desc": "Source system code" },
+		{ "name": "VALID_FROM_DT","type": "date", "desc": "Start of validity (inclusive)" },
+		{ "name": "VALID_TO_DT","type": "date", "desc": "End of validity (inclusive)" },
+		{ "name": "VALID_DT","type": "date", "desc": "Validity date" }
+	],
+	
+	"column_to_table": [
+		{ "column": "ACCOUNT_ID", "tables": ["MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_COLL_TO_ACCOUNT"] },
+		{ "column": "ACCT_LIMIT_AMT", "tables": ["MINIDW.FCT_ACCOUNT_CORE"] },
+		{ "column": "ACCT_OPEN_DT", "tables": ["MINIDW.FCT_ACCOUNT_CORE"] },
+		{ "column": "ACCT_STATE_CD", "tables": ["MINIDW.FCT_ACCOUNT_CORE"] },
+		{ "column": "ACCT_SUBTYPE_CD", "tables": ["MINIDW.FCT_ACCOUNT_CORE"] },
+		{ "column": "ACCT_TYPE_CD", "tables": ["MINIDW.FCT_ACCOUNT_CORE"] },
+		{ "column": "ALLOCATION_RT", "tables": ["MINIDW.FCT_COLL_TO_ACCOUNT"] },
+		{ "column": "BOOKING_EXPOSURE_AMT", "tables": ["MINIDW.FCT_DEAL"] },
+		{ "column": "BOOKING_EXPOSURE_OFF_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "BOOKING_EXPOSURE_ON_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "BOOKING_EXPOSURE_TOTAL_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "CALC_METHOD_CD", "tables": ["MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "CCY_CD", "tables": ["MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_COLLATERAL_CORE","MINIDW.FCT_RWA_DETAIL","MINIDW.FCT_CCY_RATE"] },
+		{ "column": "CCY_RT", "tables": ["MINIDW.FCT_CCY_RATE"] },
+		{ "column": "CCY_RATE_TYPE_CD", "tables": ["MINIDW.FCT_CCY_RATE"] },
+		{ "column": "COLL_CATEGORY_CD", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLL_ELIGIBLE_FLG", "tables": ["MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "COLL_MARKET_VALUE_AMT", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLL_PROVIDER_ID", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLL_RISK_VALUE_AMT", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLL_TYPE_CD", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLL_VALUATOR_ID", "tables": ["MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "COLLATERAL_ID", "tables": ["MINIDW.FCT_COLLATERAL_CORE","MINIDW.FCT_COLL_TO_ACCOUNT","MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "CUST_OPEN_DT", "tables": ["MINIDW.FCT_CUSTOMER_CORE"] },
+		{ "column": "CUST_STATE_CD", "tables": ["MINIDW.FCT_CUSTOMER_CORE"] },
+		{ "column": "CUST_TYPE_CD", "tables": ["MINIDW.FCT_CUSTOMER_CORE"] },
+		{ "column": "CUSTOMER_ID", "tables": ["MINIDW.FCT_CUSTOMER_CORE","MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL"] },
+		{ "column": "DEAL_ID", "tables": ["MINIDW.FCT_DEAL","MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "EXPECTED_LOSS_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "EXPOSURE_AT_DEFAULT_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "EXPOSURE_MATURE_DT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "EXPOSURE_START_DT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "GUARANTOR_ID", "tables": ["MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "IFRS_EXPOSURE_AMT", "tables": ["MINIDW.FCT_DEAL"] },
+		{ "column": "IFRS_EXPOSURE_OFF_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "IFRS_EXPOSURE_ON_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "IFRS_EXPOSURE_TOTAL_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "IFRS_IMPAIRMENT_AMT", "tables": ["MINIDW.FCT_DEAL"] },
+		{ "column": "IFRS_IMPAIRMENT_OFF_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "IFRS_IMPAIRMENT_ON_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "IFRS_IMPAIRMENT_TOTAL_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL"] },
+		{ "column": "ON_BALANCE_FLG", "tables": ["MINIDW.FCT_DEAL"] },
+		{ "column": "RISK_TRANSFER_FLG", "tables": ["MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "RISK_WEIGHTED_ASSETS_AMT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_RWA_DETAIL"] },
+		{ "column": "SOURCE_SYSTEM_CD", "tables": ["MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_DEAL"] },
+		{ "column": "VALID_FROM_DT", "tables": ["MINIDW.FCT_CUSTOMER_CORE","MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "VALID_TO_DT", "tables": ["MINIDW.FCT_CUSTOMER_CORE","MINIDW.FCT_ACCOUNT_CORE","MINIDW.FCT_COLLATERAL_CORE"] },
+		{ "column": "VALID_DT", "tables": ["MINIDW.FCT_ACCOUNT_DETAIL","MINIDW.FCT_DEAL","MINIDW.FCT_COLL_TO_ACCOUNT","MINIDW.FCT_RWA_DETAIL","MINIDW.FCT_CCY_RATE"] }
+	],
+	
+	"column_spec": [
+		{ "column": "ACCT_LIMIT_AMT",
+		  "tables": [
+			{"table": "MINIDW.FCT_ACCOUNT_CORE", "source": { "collation": "J1" }, "load": {"prologue": "In this order, based on the source system :", "loadType": "branches", "expression": "source system (table)", "branches": [{"condition": "CA", "then": "CA.CURRENT_LIMIT"}, {"condition": "RA", "then": "RF.LIMIT_AMOUNT"}]} }
+		  ]
+		},
+		{ "column": "ACCT_OPEN_DT",
+		  "tables": [
+			{"table": "MINIDW.FCT_ACCOUNT_CORE", "multidef": "M1" }
+		  ]
+		},
+		{ "column": "CCY_CD",
+		  "tables": [
+			{"table": "MINIDW.FCT_ACCOUNT_CORE", "source": { "collation": "J1" }, "load": {"prologue": "In this order, based on the source system :", "loadType": "branches", "expression": "source system (table)", "branches": [{"condition": "CA", "then": "CA.CURRENT_LIMIT"}, {"condition": "RA", "then": "RF.LIMIT_AMOUNT"}]} },
+			{"table": "MINIDW.FCT_ACCOUNT_DETAIL", "multidef": "M1" }
+		  ]
+		}
+	]
+}
