@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <title>Specification for AdvancedTask</title>
+  
+	<style type="text/css">
+		body {
+			font-size: 14px;
+		}
+		.pre {
+			font-family: monospace;
+			white-space: pre;
+			font-size: 14px;
+		}
+		.bold {
+			font-weight: bold;
+		}
+		.italic {
+			font-style: italic;
+		}
+		table.info {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+		table.info td, th {
+			padding: 7px 7px;
+			border: 1px solid #666;
+		}
+		table.info th {
+			font-weight: bold;
+			background: #eaeaea;
+		}
+		
+		table.noborder {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+		table.noborder td {
+			padding: 7px 7px;
+			border: none;
+			vertical-align: top;
+			text-align: left;
+		}
+		
+		.svg-container {
+			width: 50%;
+			height: auto;
+		}
+		svg {
+			width: 100%;
+			height: auto;
+		}
+	</style>
+  
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  
+</head>
+<body>
+	<h1>DwhDoc - Documentation tool for small ETLs in Datawarehouses</h1>
+	<p class="italic">Specification powered by <a href="https://mermaid-js.github.io/mermaid/#/"><span class="pre">Mermaid</span></a>, <a href="https://jqueryui.com/"><span class="pre">jQuery UI</span></a></p>
+	
+	<div id="accordion">
+
+	<h3>Business specification</h3>
+	<section>
+	<h4>What is this?</h4>
+	<p>An APIDoc-like document destined to present a set of ETL flows in a Datawarehouse in a "Precondition-Postcondition" fashion. That is: instead of explaining in details what the job(s) do(es) it concentrates</p>
+	<ul>
+	<li>on source objects (practically: tables in a relational database) by giving a short description why we use them and what will be taken out of them</li>
+	<li>on properly filtering and joining those sources</li>
+	<li>on resulting tables' structure generally split into
+		<ul>
+			<li>keyset generation</li>
+			<li>and loading of individual attributes</li>
+		</ul>
+	</li>
+	</ul>
+	<p>This kind of documentation may be helpful for "power users", that is for people with strong SQL and subject matter knowledge tasked with creating analytics, base tables etc. for their reporter/analyst colleagues.</p>
+	<p>"Power users" might also take advantage of this tool by documenting their own work, whenever they run into a supervisory/internal audit stating their contribution is somewhat obscure and definitely needs a whitening by, as a first step, providing a proper documentation on what is done exactly.</p>
+	<h4>What is supported...?</h4>
+	<p>As for the tool's capabilities: it should...<ul>
+		<li>list columns and tables covered by the documentation</li>
+		<li>support separate key set generation description part for table objects</li>
+		<li>support the idea that the same column name may appear in different tables loaded differently</li>
+		<li>support the idea that the definition of a subset of columns is so strongly connected that it makes sense to present their definition together</li>
+		<li>be interlinked wherever possible, e.g.<ul>
+				<li>when contemplating a table definition, Reader should be able to navigate directly to the individual column (attribute) definitions</li>
+				<li>by looking at a column definition of a specific table, Reader must be able to navigate to the definitions of thesame-named column in other tables</li>
+			</ul></li>
+		<li>provide a solution to represent source filterings and joins in a straightforward manner</li>
+		<li>support vanilla "take-this-column-from-here" approach as well as more complex loadings (e.g. logical branching: "case-when", burnt-in mappings: "decode(...)")</li>
+		<li>support an interface description for user-defined functions</li>
+		<li>support extensive reusability for Writer so that already defined document parts can be pulled in without the need of redefining them all the time</li>
+	</ul>
+	</p>
+	<h4>...constrained by what?</h4>
+	<p>Underlying assumptions:</p>
+	<ul>
+		<li>table names are different &#128578;<ul>
+			<li>Well, RDBMSs usually provide this "feature". In case of potential name collisions, prefixing with schema names might be a viable workaround</li>
+			</ul></li>
+		<li>columns with the same name have the same type and represent the same business content across the whole database
+			<ul><li>this might be regarded as a general advice...</li>
+				<li>nevertheless, an immediate consequence is that a column has a single description in the present tool that appears as a "header" for the column regardless which table we are looking at</li>
+			</ul>
+		</li>
+	</ul>
+	</section>  <!-- end of Business specification -->
+
+	<h3>Tool specification</h3>
+	<section>
+	<h4>TBD in detail, but in a nutshell...</h4>
+	<p>Node.js application using Express and exclusively server-side rendering via pug views. Client-side AJAX calls burnt into those same views where needed.</p>
+	<p>Source structure:</p>
+	<table class="noborder">
+		<tr>
+			<td>
+				<p><span class="pre">server.js</span></p>
+			</td>
+			<td>
+				<p>imports and starts <span class="pre">app.js</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p><span class="pre">app.js</span></p>
+			</td>
+			<td>
+				<p>serves <span class="pre">index.html</span> as well as <span class="pre">GET</span> requests for specific tables and columns.<br/>Requests are 
+					<ul><li>forwarded to <span class="pre">db.js</span> to extract renderable specification from the underlying "database" (see below)</li>
+						<li>extended with language-specific keywords</li>
+						<li>inspected for potential definition errors</li>						
+						<li>then rendered with the respective view</li>
+					</ul>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p><i>public</i></p>
+			</td>
+			<td>
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;<i>css</i></p>
+			</td>
+			<td>
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pre">dwhdoc.css</span></p>
+			</td>
+			<td>
+				<p>referenced by the views</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;<i>data</i></p>
+			</td>
+			<td>
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pre">db.js</span></p>
+			</td>
+			<td>
+				<p>provides a class called <span class="pre">MockDB</span> that<ul>
+					<li>is used by <span class="pre">app.js</span></li>
+					<li>reads in <span class="pre">spec.json</span> containing the "specification" to be shown to Reader</li>
+					<li><i>getLang()</i> returns the keyword set for the actual language (implemented: English...)</li>
+					<li><i>getMeta()</i> returns title, modification history etc. taken from <span class="pre">spec.json</span></li>
+					<li><i>getTableSpec(tblName)</i> returns table specification extracted from <span class="pre">spec.json</span> ready to be fed into <span class="pre">tblSpec.pug</span></li>
+					<li><i>getColumnSpec(colName, tblName)</i> returns column specification extracted from <span class="pre">spec.json</span> ready to be fed into either <span class="pre">colSpecSimple.pug</span> or <span class="pre">multiDef.pug</span></li>
+				</ul>
+				</p>
+			</td>
+		</tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pre">spec.json</span></p>
+			</td>
+			<td>
+				<p>THE specification in form of a JSON document. Structure detailed in next section
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<p>&nbsp;&nbsp;&nbsp;<i>views</i></p>
+			</td>
+			<td>
+				<p>PUG views + mixins (prefixed with an underscore)</p>
+			</td>
+		</tr>
+	</table>
+	</section>  <!-- end of Tool specification -->
+
+	<h3>Document structure</h3>
+	<section>
+	<h4>General structure</h4>
+	<pre>
+{
+	"meta": {},
+	"table": [],
+	"table_spec": [],
+	"collation": [],
+	"multidef": [],
+	"column": [],
+	"column_to_table": [],
+	"column_spec": []
+}
+	</pre>
+	<p><a href="#dsmeta"><span class="pre">meta</span></a> provides title / author / modification history for the specification</p>
+	<p><a href="#dstable"><span class="pre">table</span></a> table list along with their header information, WITHOUT reference to any attributes</p>
+	<p><a href="#dstable_spec"><span class="pre">table_spec</span></a> table-level keyset generation (still NOT attributes!)</p>
+	<p><a href="#dscollation"><span class="pre">collation</span></a> predefined JOINs or UNIONs, to be referenced later elsewhere</p>
+	<p><a href="#dsmultidef"><span class="pre">multidef</span></a> predefined page for the specification of a somewhat complex loading OR a joint specification of multiple attributes (columns)</p>
+	<p><a href="#dscolumn"><span class="pre">column</span></a> column list along with their header information</p>
+	<p><a href="#dscolumn_to_table"><span class="pre">column_to_table</span></a> column-to-table enumeration so that a column should also be listed in a table when its specification is not (yet) available at the moment</p>
+	<p><a href="#dscolumn_spec"><span class="pre">column_spec</span></a> column specifications</p>
+	<p>May be of further interest:</p>
+	<p><a href="#dssource"><span class="pre">source</span></a> source specification (e.g. JOIN, UNION etc.)</p>
+	<p><a href="#dsload"><span class="pre">load</span></a> load specification of a single column</p>
+	
+	<h4><a id="dsmeta">meta</a></h4>
+	<pre>
+	"meta": {
+		"title": String,
+		"subTitle": String,
+		"header": {"time": "Timestamp", "author": "Author", "modification": "Last modification"},
+		"docHist": [
+			{"time": date, "author": String, "modification": String},
+			...
+		]
+	}
+	</pre>
+	<p>Quite self-explaning:<ul>
+			<li><span class="bold pre">header</span> literally contains a table header</li>
+			<li>whereas <span class="bold pre">docHist</span> defines its content row-by-row</li>
+		</ul>
+	Together forming a document history.
+	</p>
+	
+	<h4><a id="dstable">table</a></h4>
+	<pre>
+	"table": [
+		{
+			"name": String,
+			"desc": String,
+			
+			"in":   boolean,
+			"out":  boolean,
+			"temp": boolean,
+			
+			"historization": String,
+			"keys": [
+				String, String, ...
+			]
+		}
+	</pre>
+	<p>Besides name and description, we should specify whether the table in question is<ul>
+			<li>strictly a source: <span class="pre">"in": true, "out": false</span></li>
+			<li>strictly a target: <span class="pre">"in": false, "out": true</span></li>
+			<li>both: <span class="pre">"in": true, "out": true</span></li>
+			<li>just temporary: <span class="pre">"temp": true</span></li>
+		</ul>
+	NOTE that only tables marked as <span class="bold pre">"out": true</span> will appear on the horizontal navigation bar and will need, therefore, a proper definition in <a href="#dstable_spec"><span class="bold pre">table_spec</span></a>.
+	</p>
+	<p><span class="pre">historization</span> may contain any meaningful text of your choice. Its purpose is to orient the Reader regarding the usage of the table (e.g. it does or does not contain a time series; if it does, is it a series of snaphots OR validity ranges etc.). Some ideas:<ul>
+			<li>without any kind of historization: <span class="pre">"historization": "none"</span></li>
+			<li>snapshots: <span class="pre">"historization": "VALUE_DATE"</span> referring to the column name holding the information</li>
+			<li>validity ranges: <span class="pre">"historization": "VALID_FROM-VALID_TO"</span> referring to the column names holding the start and end of period</li>
+		</ul>
+	</p>
+	<p><span class="pre">keys</span> simply enumerates the columns building the business key.<br/>
+	NOTE that any column being part of the business key MUST be defined in <span class="bold pre"><a href="#dstable_spec">table_spec</a></span>. For the sake of simplicity whenever a column of the business key is requested, the <span class="bold pre"><a href="#dstable_spec">table_spec</a></span> page is returned. </p>
+	
+	<h4><a id="dstable_spec">table_spec</a></h4>
+	<pre>
+	"table_spec": [
+		{
+			"name": String,
+			"keyGen": {
+				"source": {... detailed below ...},
+				"load": [
+					{"column": String, "load": {... detailed below ...}},					
+					{"column": String, "load": {... detailed below ...}},
+					...
+				]
+			}
+		},
+		...
+	]
+	</pre>
+	<p>A table specification must contain a valid <span class="bold pre">name</span> (to be looked up in <span class="bold pre"><a href="#dstable">table_spec</a></span>) and may contain a specification of its key generation.</p>
+	<p>We assume that <ul>
+			<li>tables are generated either by joining or by uniting certain <span class="bold pre"><a href="#dssource">source</a></span> tables </li>
+			<li>and then a definition exists for the propagation (<span class="bold pre"><a href="#dsload">load</a></span>) of all key columns </li>
+		</ul>
+	</p>
+	
+	<h5><a id="dssource">source</a></h5>
+	<p>A source might be...</p>
+	<p class="bold">... a single table, possibly filtered</p>
+	<p>If this is the case, an alias, a name and the filtering should be provided in the following fashion:</p>
+	<pre>
+	"source": {
+		"content": [
+			{"alias": String, "table": String, 
+				"whcl": [
+					{"left": String, "op": "=", "right": String},
+					{"logConn": String, "left": String, "op": String, "right": String},
+					{"logConn": String, "left": String, "btw": {"lower": String/Number, "upper": String/Number} },
+					{"logConn": String, "left": String, "in": [ ELEM_1, ELEM_2, ... ] },
+					...
+				]
+			}
+		]
+	}
+	</pre>
+	<p>Practically, a proper WHERE clause is built up. An example:</p>
+	<pre>
+	"source": {
+		"content": [
+			{"alias": "T", "table": "CORE_C.CUSTOMER", 
+				"whcl": [
+					{"left": "COL_1", "op": "=", "right": "10"},
+					{"logConn": "AND", "left": "COL_2", "in": ["COG","WHEEL"] }
+				]
+			}
+		]
+	}
+	</pre>
+	
+	
+	<p class="bold">... a bunch of tables joined/united</p>
+	<p>If this is the case, best if it is defined among <span class="bold pre"><a href="#dscollation">collation</a></span> objects. Example:</p>
+	<pre>
+	"source": {
+		"collation": "U1"
+	}
+	</pre>
+	<p>Hopefully collation <span class="pre">U1</span> is really defined among <span class="pre">collation</span>s. If not, an error message will be returned.</p>
+	<p>Predefining the join as a named collation is not necessary though, it can go "anonym" at the table specification as well:</p>
+	<pre>
+	"source": {
+		"content": [
+			{"alias": String, "table": String, 
+				"whcl": [
+					{"left": String, "op": "=", "right": String},
+					{"logConn": String, "left": String, "op": String, "right": String},
+					{"logConn": String, "left": String, "btw": {"lower": String/Number, "upper": String/Number} },
+					{"logConn": String, "left": String, "in": [ ELEM_1, ELEM_2, ... ] },
+					...
+				]
+			},
+			{"alias": String, "table": String, 
+				"whcl": [
+					{"left": String, "op": "=", "right": String},
+					{"logConn": String, "left": String, "op": String, "right": String},
+					{"logConn": String, "left": String, "btw": {"lower": String/Number, "upper": String/Number} },
+					{"logConn": String, "left": String, "in": [ ELEM_1, ELEM_2, ... ] },
+					...
+				],
+				"join": [
+					{"leftTbl": String, "leftColumn": String, "op": String, "rightTbl": String, "rightColumn": String},
+					{"logConn": String, "leftTbl": String, "leftColumn": String, "btw": {"lower": String/Number, "upper": String/Number} },
+					{"logConn": String, "leftTbl": String, "leftColumn": String, "in": [ELEM_1, ELEM_2, ...] },
+					...
+				]
+			}
+		]
+	}
+	</pre>
+	<p>Where and Join clauses are almost identical with the only difference being the Where clause not implementing aliases in any way (since it is assumed that the filtering affects that single table only.</p>
+	
+	<h5><a id="dsload">load</a></h5>
+	<p>A single column might be loaded as<ul>
+			<li>plain <span class="pre">text</span>, without too much fuss about semantics: simply <span class="pre">"load": {"text": String}</span></li>
+			<li><span class="pre">ternary</span> (IF-THEN-ELSE):
+			<pre>
+	"load": {"prologue": String, 
+			"loadType": "ternary", 
+			"condition": String, 
+			"yes": String, 
+			"no": String,
+			"epilogue": String
+	}
+			</pre>
+			Here <span class="pre">prologue</span> and <span class="pre">epilogue</span> are not mandatory. <span class="pre">yes</span> should contain the expected behaviour whenever the <span class="pre">condition</span> holds, <span class="pre">no</span> happens otherwise
+			</li>
+			<li><span class="pre">branches</span> (CASE-WHEN with many outcomes):
+			<pre>
+	"load": {"prologue": String, 
+			"loadType": "branches", 
+			"expression": String, 
+			"branches": [
+				{"condition": String, "then": String},
+				{"condition": String, "then": String},
+				...
+			],
+			"epilogue": String
+	}
+			</pre>
+			Here <span class="pre">prologue</span> and <span class="pre">epilogue</span> are not mandatory either. It is assumed that a somewhat complex expression is about to be evaluated (or simply an explanation is provided...) and then each branch has its own condition + expected behaviour
+			</li>
+			<li><span class="pre">hardmap</span> (DECODE):
+			<pre>
+	"load": {"prologue": String, 
+			"loadType": "hardmap", 
+			"expression": String, 
+			"maps": [
+				{"from": String, "to": String},
+				{"from": String, "to": String},
+				...
+			],
+			"epilogue": String
+	}
+			</pre>
+			Here <span class="pre">prologue</span> and <span class="pre">epilogue</span> are not mandatory either. It is assumed that the programmer/designer/whoever did not care much about map tables, instead opted for hardcoding the expected transformation into the job...
+			</li>
+		</ul>
+	</p>
+	
+	<h4><a id="dscollation">collation</a></h4>
+	<p>A <span class="pre">collation</span> a bunch of record sets (e.g. tables) EITHER JOINED OR UNIONED together. But never both. So<ul>
+		<li><span class="pre">A join B join C</span> is OK</li>
+		<li><span class="pre">A union B union C</span> is OK</li>
+		<li><span class="pre">(A join B) union C</span> would not work, at least not in this version... In such a case one may resort to define <span class="pre">(A join B)</span> separately as a temporary table and THEN take its <span class="pre">union</span> with <span class="pre">C</span>.</li>
+	</ul>
+	A collation:
+	<pre>
+	{
+		"name": String,
+		"type": String,
+		"content": [
+				{"alias": String, "table": String, 
+					"whcl": [
+						{"left": String, "op": String, "right": String},
+						...
+					]
+				},
+				{"alias": String, "table": String, 
+					"whcl": [
+						{"left": String, "op": String, "right": String},
+						...
+					],
+					"join": [
+						{"leftTbl": String, "leftColumn": String, "op": String, "rightTbl": String, "rightColumn": String},
+						{"logConn": String, "leftTbl": String, "leftColumn": String, "btw": {"lower": String/Number, "upper": String/Number} },
+						{"logConn": String, "leftTbl": String, "leftColumn": String, "in": [ELEM_1, ELEM_2, ...] },
+						...
+					]
+				},
+				...
+			]
+	}
+	</pre>	
+	</p>
+	<p><span class="pre">name:</span> name of the collation, referenced elsewhere</p>
+	<p><span class="pre">type:</span> EITHER <span class="pre">union</span> OR <span class="pre">join</span></p>
+	<p><span class="pre">content:</span> an array of sources to be either joined or united...<ul>
+			<li><span class="pre">alias</span> and <span class="pre">table</span> are a must</li>
+			<li><span class="pre">whcl:</span> where clause, an array itself</li>
+			<li><span class="pre">join:</span> makes sense only with <span class="pre">"type": "join"</span>. Here one is encouraged to substitute tables with their aliases into <span class="pre">leftTbl</span> and <span class="pre">rightTbl</span></li>
+		</ul>
+	In its current form, NEITHER the Where clause NOR the Join clause gives a proper implementation of the <span class="i">membership</span> condition (e.g. <span class="pre">COL in (E1, E2, ..., En)</span>). A deficiency to be mended in the future...
+	</p>
+	
+	
+	<h4><a id="dsmultidef">multidef</a></h4>
+	<p>When things get complicated (a simple join of source record sets seasoned with some transformation would not suffice) <span class="i">multidef</span> is supposed to come to the rescue... It is an array of elements of different types, evaluated and rendered element-by-element:</p>
+	<pre>
+	{
+		"name": String,
+		"title": String,
+		"blocks": [
+				{"type": String, ... type-specific attributes ...},
+				{"type": String, ... type-specific attributes ...},
+				...
+			]
+	}
+	</pre>
+	<p><span class="pre">name:</span> name of the multi definition page, referenced elsewhere</p>
+	<p><span class="pre">title:</span> header appearing at the top of the page</p>
+	<p><span class="pre">blocks:</span> an array of <span class="i">block</span>s in their intended order of appearance, each being one of the following types:<ul>
+			<li><a href="#dssectionHeader"><span class="pre">sectionHeader</span></a></li>
+			<li><a href="#dstempTable"><span class="pre">tempTable</span></a></li>
+			<li><a href="#dsfunction"><span class="pre">function</span></a></li>
+			<li><a href="#dssource"><span class="pre">source</span></a></li>
+			<li><a href="#dsload"><span class="pre">load</span></a></li>
+			<li><a href="#dsloadAgg"><span class="pre">loadAgg</span></a></li>
+		</ul>
+	</p>
+	
+	<h5><a id="dssectionHeader">sectionHeader</a></h5>
+	<p>Accomodates a title (rendered as a H4 heading) and a prologue (rendered as a simple paragraph):</p>
+	<pre>
+	{
+		"type": "sectionHeader",
+		"title": String,
+		"prologue": String
+	}
+	</pre>
+	
+	<h5><a id="dstempTable">tempTable</a></h5>
+	<p>A <span class="pre">tempTable</span> may or may not aggregate values. If it does, that may occur over predefined key columns (<span class="pre">grouping</span>). Furthermore, the end result is also subject to further filtering in order to meet its <span class="pre">postCondition</span> (="HAVING" clause):</p>
+	<pre>
+	{
+		 "type": "tempTable",
+		 "name": String,
+		 "desc": String,
+		 "source": { ... },
+		 "grouping": [
+				COL_1: String, COL_2: String, ..., COL_n: String
+			],
+		 "load": [
+				{"column": String, "agg": String, "load": {...} },
+				{"column": String, "agg": String, "load": {...} },
+				...
+			],
+		 "postCondition": [
+				{"left": String, "op": String, "right": String},
+				{"logConn": String, "left": String, "op": String, "right": String"},
+				...
+			]
+	}
+	</pre>
+	<p><span class="pre">name</span> and <span class="pre">desc</span> form together a header.</p>
+	<p><span class="pre">load</span> elements may or may not contain an <span class="pre">agg</span> attribute (not compulsory)</p>
+	
+	<h5><a id="dsfunction">function</a></h5>
+	<p>A <span class="pre">function</span> accepts parameters and returns a value.</p>
+	<pre>
+	{
+		 "type": "function",
+		 "name": String,
+		 "desc": String,
+		 "params": [
+				{"name": String, "type": String, "default": String, "desc": String},
+				{"name": String, "type": String, "default": String, "desc": String},
+				...
+			],
+		 "return": [
+				{"type": String, "load": {...}},
+				{"type": String, "load": {...}},
+				...
+			]
+	}
+	</pre>
+	<p><span class="pre">name</span> and <span class="pre">desc</span> form together a header.</p>
+	<p><span class="pre">params</span> list function parameters along with their type, default value and some hint on what they are good for...</p>
+	<p><span class="pre">return</span> may contain more than one entry. In fact this is the right place to present what the function is intended to do</p>
+	
+	<h5><a id="dsloadAgg">loadAgg</a></h5>
+	<p><span class="pre">loadAgg</span> differs from <span class="pre">load</span> only in that it accomodates aggregation (MAX, MIN, SUM etc.):</p>
+	<pre>
+		{"column": String, "agg": String, "load": {...} }
+	</pre>
+	<p>E.g. <span class="pre">"agg": "MAX"</span> would mean that here a <span class="pre">MAX(.)</span> is to be taken over some predefined keyset and this information appears on the rendered page next to the column name.</p>
+	<p>The <span class="pre">load</span> attribute is then rendered exactly as an "ordinary" <a href="#dsload"><span class="pre">load</span></a> instruction.</p>
+	
+	
+	<h4><a id="dscolumn">column</a></h4>
+	<p>Provides a description of the columns to be present on the vertical navigation bar:</p>
+	<pre>
+	"column": [
+			{ "name": String, "type": String, "desc": String },
+			{ "name": String, "type": String, "desc": String },
+			...
+		]
+	</pre>
+	
+	<h4><a id="dscolum_to_table">colum_to_table</a></h4>
+	<p>Enumerates column occurences in tables:</p>
+	"column_to_table": [
+		{
+			"column": String,
+			"tables": [
+					TBL_1, TBL2, ..., TBL_n
+				]
+		}
+	]
+	</pre>
+	<p><span class="pre">column</span> should be a valid entry in <span class="pre">columns</span>.</p>
+	<p>Elements of <span class="pre">tables</span> should be valid entries in <span class="pre">table</span>.</p>
+	
+	<h4><a id="dscolumn_spec">column_spec</a></h4>
+	<pre>
+"column_spec": [
+		{ "column": String,
+		  "tables": [
+			{"table": String, "source": { "collation": String }, "load": { ... } },
+			{"table": ... },
+			...
+		  ]
+		},
+		{ "column": String,
+		  "tables": [
+			{"table": String, "multidef": String },
+			{"table": ... },
+			...
+		  ]
+		},
+		{ "column": String,
+		  "tables": [
+			{"table": String, 
+				"source": { ... }, "load": { ... }
+			},
+			{"table": ...
+			},
+			...
+		  ]
+		}
+	]
+	</pre>
+	<p>Each column may appear in more than one table. The loading process must be defined for each table separately.</p>
+	<p>In the first case, a predefined named <a href="#dscollation"><span class="pre">collation</span></a> (join/union) will be replaced as source AND the load description should use the aliases and column names available in the collation it is referencing.</p>
+	<p>In the second case, a <a href="#dsmultidef"><span class="pre">multidef</span></a> page is called to the rescue... The multidef page is a compact page on its own which (hopefully) provides some hint on how this specific column in that specific table is loaded. Nothing further to specify here. </p>
+	<p>The third case provides an example for the "inline" ("anonym") load definition: source along with load is defined exclusively for this column-table combo, not to be reused elsewhere. A good strategy, for instance, when a column is loaded from a single source.</p>
+	
+	</section>  <!-- end of Document structure -->
+
+</body>
+
+</html>
